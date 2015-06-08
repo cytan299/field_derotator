@@ -36,7 +36,7 @@ struct StatusPacket
   int16_t _home_pos;
   int16_t _max_cw;
   int16_t _max_ccw;
-  int16_t _padding;
+  int16_t _is_enable_limits;
   // present position of camera
   float _angle;
   float _accumulated_angle;
