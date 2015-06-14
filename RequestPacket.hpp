@@ -59,7 +59,9 @@ SEE ALSO
 #define CMD_GET_USER_HOME_POS	104
 #define CMD_GET_MAX_CW_POS	105
 #define CMD_GET_MAX_CCW_POS	106
-#define CMD_SET_WLAN_INFO	107
+#define CMD_SET_WLAN_SSID	107
+#define CMD_SET_WLAN_PASS	108
+#define CMD_SET_WLAN_SECURITY	109
 
 
 struct RequestPacket
@@ -67,6 +69,7 @@ struct RequestPacket
   int16_t _command;
   int16_t _ivalue;
   float _fvalue[3];
+  char _buf[32];
 };
 		   
 #endif

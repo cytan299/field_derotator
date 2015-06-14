@@ -102,7 +102,6 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
     main_menu.activeNode=&setup_menu;
     switch(rq->_command){
       case SETUP_SET_USER_HOME:
-	Serial.print("user home deg = "); Serial.println(rq->_fvalue[0], DEC);
 	_derotator->SetUserHome(static_cast<long>(rq->_fvalue[0]/MECHANICAL_STEPSIZE)); // steps
 	sprintf(buf, ": %d", _derotator->GetUserHome()); // already in steps	
         _userio->Print("Setting Home to",
@@ -112,7 +111,6 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
       break;
       
       case SETUP_MAX_CW:
-	Serial.print("user max cw = "); Serial.println(rq->_fvalue[0], DEC);
 	_derotator->SetMaxCW(static_cast<long>(rq->_fvalue[0]/MECHANICAL_STEPSIZE)); // steps
 	sprintf(buf, ": %d", _derotator->GetMaxCW()); // already in steps	
         _userio->Print("Setting CW to",
@@ -122,7 +120,6 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
 	_userio->ForceLCDPrintMenu(setup_menu, true);	    
       break;
       case SETUP_MAX_CCW:
-	Serial.print("user max ccw = "); Serial.println(rq->_fvalue[0], DEC);	
 	_derotator->SetMaxCCW(static_cast<long>(rq->_fvalue[0]/MECHANICAL_STEPSIZE)); // steps
 	sprintf(buf, ": %d", _derotator->GetMaxCCW()); // already in steps	
         _userio->Print("Setting CCW to",
@@ -193,7 +190,6 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
 	_userio->GetSSID(static_cast<char*>(sp->_WLAN_ssid), &security);
 	sp->_WLAN_security = security;
 	sp->_WLAN_password[0] = '\0'; // never send back the password
-
       break;
 
       case CMD_GET_USER_HOME_POS:
@@ -208,10 +204,19 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
         rp->_fvalue[0] = _derotator->GetMaxCCW();
       break;
 
-      case CMD_SET_WLAN_INFO:
-	sp->_reply = REPLY_OK;
-
-	//	_userio->SetSSID(sp->_WLAN_ssid, sp->_WLAN_password, sp->_WLAN_security);
+      case CMD_SET_WLAN_SSID:
+	rp->_reply = REPLY_OK;
+	_userio->SetSSID(rq->_buf);
+      break;
+	
+      case CMD_SET_WLAN_PASS:
+	rp->_reply = REPLY_OK;
+	_userio->SetPass(rq->_buf);
+      break;
+	
+      case CMD_SET_WLAN_SECURITY:
+	rp->_reply = REPLY_OK;
+	_userio->SetSecurity(rq->_ivalue);	
       break;	
     }
   }
