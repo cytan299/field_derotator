@@ -1,0 +1,530 @@
+<!--
+    DeRotator Interface User's Guide
+-->
+<center>
+<H1>Field DeRotator Interface User's Guide</H1>
+<img src="pics/derotator_interface.png">
+</center>
+
+<HR>
+<center>
+by
+</center>
+<center>
+C.Y. Tan
+</center>
+<center>
+June 2015
+</center>
+<HR>
+<H1>Copyright</H1>
+  <pre>
+    Copyright (C)  2015 C.Y. Tan
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.3
+    or any later version published by the Free Software Foundation;
+    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+    A copy of the license is included in the section entitled "GNU
+    Free Documentation License".
+  </pre>
+<HR>
+
+<H1>Table of Contents</H1>
+<UL>
+  <LI> <a href="#Introduction">Introduction</A>
+  <LI> <a href="#Nomenclature">Nomenclature</A>  
+  <LI> <a href="#Connecting">Connecting to the controller</A>
+  <UL>
+    <LI><a href="#Serial">Serial line</A>
+    <LI><a href="#WIFI">WIFI</A>
+  </UL>  
+  <LI> <a href="#Home">Setting up HOME</A>
+  <LI> <a href="#ArbitraryAngle">Rotating to an arbitrary angle</A>
+  <LI> <a href="#HomePosition">Setting up the HOME position</A>
+  <LI> <a href="#SettingLimits">Setting the CW and CCW limits</A>
+  <LI> <a href="#Derotation">Derotation</A>
+  <UL>
+    <LI><a href="#StartDeRotation">Starting the derotation</A>
+    <LI><a href="#StopDeRotation">Stopping the derotation</A>
+  </UL>
+  <LI> <a href="#Configurations">Loading and saving configurations</A>
+  <LI> <a href="#Other">Other settings</A>
+    <UL>
+    <LI><a href="#SetHallHome">Set Hall home ...</A>
+    <LI><a href="#IsCorrectionCW">Is correction clockwise?</A>
+    </UL>
+  <LI> <a href="#Messages">Messages</A>
+  <LI> <a href="#Commandline">Commandline interface</A>
+    <UL>
+    <LI><a href="#Flats">Taking flats</A>
+    </UL>    
+  <LI> <a href="#Copyright">GNU Free Documentation License Notice</A>
+</UL>
+<HR>
+
+<A NAME="Introduction"></A>
+<H1> Introduction </H1>
+This is the guide for operating the user interface of the Field DeRotator. The
+interface allows you to connect to the controller via
+<UL>
+  <LI> WIFI </LI>
+  <LI> Serial line </LI>
+</UL>
+and and then communicate with it.
+
+<HR>
+
+<A NAME="Nomenclature"></A>
+<H1>Nomenclature</H1>
+<center>
+<H4>Interface</H4>
+</center>
+<center>
+<img src="pics/interface.png">
+</center>
+
+<center>
+<H4>Controller</H4>
+</center>
+<center>
+<img src="pics/controller.png">
+</center>
+
+<center>
+<H4>DeRotator</H4>
+</center>
+<center>
+<img src="pics/controller_derotator.png">
+</center>
+
+<HR>
+
+<A NAME="Connecting"></A>
+<H1> Connecting to the controller</H1>
+The first time you use the controller with the interface,
+<U>you must connect your computer to the controller with a serial line
+first to set up the WIFI SSID, Password and Security mode of the
+controller.</U>
+
+
+<A NAME="Serial"></A>
+<H4> Serial line </H4>
+A USB cable is needed to connect the computer to the controller. You
+start up the serial connection by either 
+<UL>
+  <LI>
+  using the menu item <FONT FACE="Helvetica">Connect &#8594;
+  Serial port ...</FONT>
+  <img src="pics/connect.png">
+  </LI>
+  <LI>
+  using the toggle button <FONT FACE="Helvetica">serial</FONT> on
+  the menubar
+  <img src="pics/serial.png">  
+  </LI>
+</UL>
+A popup menu appears where you must fill in the device the USB
+cable is connected to. By default, the USB serial device is
+<center>
+<FONT FACE="Courier">/dev/cu.usbmodem1a1231</FONT>
+</center>
+<center>
+  <img src="pics/serial_device.png">  
+</center>
+The default communication rate is
+<center>
+<pre>
+115200,8,N,1
+</pre>
+</center>
+<P>
+Once you have selected the USB serial device, a connection attempt
+is made to the controller. <b>The controller always reboots when the serial
+line successfully connects.</b>
+<P>
+You must select do a
+<center>
+<FONT FACE="Helvetica">Hardware Setup &#8594; Query Hardware</FONT>
+</center>
+<center>
+  <img src="pics/query_hardware.png">  
+</center>
+after the the controller has completed its reboot.
+<P>
+This action is unnecessary when connecting with Wifi because this is
+done automatically.
+
+
+<H6>First time connecting to the controller </H6>
+If you want to be able to connect the controller to the LAN, you must
+set up the WIFI SSID, Password and Security mode. You set this up
+via
+<center>
+<FONT FACE="Helvetica">Hardware Setup &#8594; Setup hardware WLAN ...</FONT>
+</center>
+<center>
+  <img src="pics/setup_hardware_lan.png">  
+</center>
+Once this is set up, you can save the WLAN data into the derototor
+EEPROM so that it remembers these values after a cold restart. To save
+these values into EEPROM, you do the following
+<center>
+<FONT FACE="Helvetica">Hardware Setup &#8594; Save hardware setup to EEPROM</FONT>
+</center>
+<center>
+  <img src="pics/save_eeprom.png">  
+</center>
+
+<A NAME="WIFI"></A>
+<H4> WIFI </H4>
+
+You must have a WIFI router that has already been set up that allows
+the controller to connect to it using the <U>SSID, Password and
+Security mode</U> that had been programmed into it earlier using the
+Serial line.
+
+<H6> Connecting the controller to the WLAN</H6>
+The controller is connected by selecting the option
+<center>
+  <img src="pics/wifi_no.png">  
+</center>
+
+in the controller menu.
+<P>
+The controller will attempt to connect to the WLAN. <U>This can take
+several minutes!</U> Please be patient. Once the controller has
+successfully connected to the WLAN, it shows
+<center>
+  <img src="pics/wifi_yes.png">  
+</center>
+
+<H6>Connecting the computer to the controller</H6>
+You have to know the IP address assigned to the controller by the
+router. This is found by selecting the option
+<center>
+<FONT FACE="Helvetica">Get Wifi IP ...</FONT> 
+</center>
+<center>
+  <img src="pics/get_wifi_ip.png">  
+</center>
+in the controller menu. After selecting this option, the IP address is
+displayed. For example,
+<center>
+  <img src="pics/ip_example.png">  
+</center>
+<P>
+Next, you connect the computer to the controller by either
+<UL>
+  <LI>
+  using the menu item <FONT FACE="Helvetica">Connect &#8594; Wifi
+  IP address ...</FONT>
+  <img src="pics/connect.png">  
+  </LI>
+  <LI>
+  using the toggle button <FONT FACE="Helvetica">wifi</FONT> on the
+  menubar
+    <img src="pics/wifi.png">  
+  </LI>
+</UL>
+A popup menu appears where you must fill in the IP address that was
+shown on the controller.
+By default, the controller IP address is
+<center>
+<FONT FACE="Courier">192.168.1.37</FONT>
+</center>
+<center>
+  <img src="pics/wifi_device.png">  
+</center>
+
+
+<HR>
+<A NAME="Home"></A>
+<H1>Setting up HOME</H1>
+
+The first time the derotator is used, you must et up the HOME position.
+The sequence for doing this is described in
+<a href="../help_controller/help_controller.html">Controller</a>.
+<P>
+Once the you have saved the HOME position into the EEPROM,
+either setup the controller for Serial or
+Wifi communication that was discussed <a href="#Connecting">above</a>.
+<P>
+When you start up the interface, it should look like this
+<center>
+<img src="pics/interface.png">
+</center>
+
+<HR>
+<A NAME="ArbitraryAngle"></A>
+<H1>Rotating to an arbitrary angle</H1>
+
+You can rotate the camera to any abitrary angle as long as the angle
+limits are not set. (If you want to limit the maximum angles the
+camera can rotate to, you do this with these <a href="#SettingLimits">instructions</a>). You do
+this by dragging the magenta rectangle to the angle that you want.
+<center>
+<img src="pics/magenta_rectangle.png">
+</center>
+
+The
+<FONT FACE="Helvetica">steps</FONT> and <FONT
+FACE="Helvetica">deg</FONT> boxes will show the angle of the magenta
+rectangle.
+<P>
+The new HOME position will be sent to the derotator when you hit the
+<center>
+<FONT FACE="Helvetica">Send</FONT> button
+</center>
+<center>
+<img src="pics/send.png">
+</center>
+<P>
+The red image which represents the camera will rotate to the magneta rectangle.
+</center>
+<center>
+<img src="pics/rotated.png">
+</center>
+
+<HR>
+<A NAME="HomePosition"></A>
+<H1>Setting up the HOME position</H1>
+
+You can set up a new HOME position by enabling
+</center>
+<center>
+<img src="pics/set_home.png">
+</center>
+and then dragging the yellow circle to any position
+</center>
+<center>
+<img src="pics/yellow_home.png">
+</center>
+This new HOME position is sent to the derotator after the
+<center>
+<FONT FACE="Helvetica">Send</FONT> button 
+</center>
+<center>
+<img src="pics/send_home.png">
+</center>
+is pushed.
+<P>
+You get out of this mode by disabling
+</center>
+<center>
+<img src="pics/unset_home.png">
+</center>
+<P>
+Once, you are out of this mode
+</center>
+<center>
+<img src="pics/before_going_home.png">
+</center>
+you can hit the
+<center>
+<FONT FACE="Helvetica">Home</FONT> button
+</center>
+<center>
+<img src="pics/home_button.png">
+</center>
+and the camera will rotate to this new HOME.
+<center>
+<img src="pics/new_home.png">
+</center>
+<HR>
+<A NAME="SettingLimits"></A>
+<H1>Setting the CW and CCW limits</H1>
+
+You can set up the clockwise (CW) and counter clockwise (CCW) limits
+that the camera can rotate to by enabling the limits
+<center>
+<img src="pics/limits_enabled.png">
+</center>
+and the interface shows the current CCW and CW limits
+<center>
+<img src="pics/limits_shown.png">
+</center>
+
+<A NAME="CWPosition"></A>
+<H6>Setting the CW limit </H6>
+You set the CW limit by enabling 
+</center>
+<center>
+<img src="pics/set_cw_limit.png">
+</center>
+and then dragging the green circle to any position
+<center>
+<img src="pics/setting_cw.png">
+</center>
+The new CW limit will be sent to the derotator when you hit the
+<center>
+<FONT FACE="Helvetica">Send</FONT> button
+</center>
+<center>
+<img src="pics/send.png">
+</center>
+You get out of this mode by disabling
+<center>
+<img src="pics/unset_cw_limit.png">
+</center>
+
+<H6>Setting the CCW limit </H6>
+You can set the CCW limit by enabling the 
+</center>
+<center>
+<img src="pics/set_ccw_limit.png">
+</center>
+and then dragging the green circle to any position
+<center>
+<img src="pics/setting_ccw.png">
+</center>
+The new CCW limit will be sent to the derotator when you hit the
+<center>
+<FONT FACE="Helvetica">Send</FONT> button
+</center>
+<center>
+<img src="pics/send.png">
+</center>
+You get out of this mode by disabling
+<center>
+<img src="pics/unset_ccw_limit.png">
+</center>
+
+<HR>
+<A NAME="Derotation"></A>
+<H1>Derotation</H1>
+You must hook up the controller to the derotator and telescope
+according to the instructions in <a
+href="../help_controller/help_controller.html">Controller</a>.
+If you have hooked up everything correctly, 
+nothing else is required for derotation.
+
+<A NAME="StartDeRotation"></A>
+<H4>Starting the derotation</H4>
+
+The derotation starts when you hit the
+<center>
+<FONT FACE="Helvetica">Start</FONT> button
+</center>
+<center>
+<img src="pics/start_button.png">
+</center>
+You can see that the camera is indeed being rotated by noting that the
+representation of the camera in red, and the magenta rectangle are
+both moving away from the HOME position like this
+<center>
+<img src="pics/derotation_starts.png">
+</center>
+
+<A NAME="StopDeRotation"></A>
+<H4>Stopping the derotation</H4>
+You can stop the derotation at any time (or any other rotations of the
+camera) by hitting the 
+<center>
+<FONT FACE="Helvetica">Stop</FONT> button
+</center>
+<center>
+<img src="pics/stop_button.png">
+</center>
+<HR>
+<A NAME="Configurations"></A>
+<H1>Loading and saving configurations</H1>
+You can load and save the user configurations using the pull down menu
+<center>
+<img src="pics/file_menu.png">
+</center>
+The user configurations are loaded and saved with this menu. Currently
+the configuration file contains the following set up parameters:
+<pre>
+    IPAddress:192.168.1.37
+    SerialDevice:/dev/cu.usbmodem1a1231
+    is_correction_clockwise:0
+</pre>
+<P>
+On startup, the interface reads a global configuration file in
+<fontface="Courier">$(HOME)/Library/Preferences/cytech/derot.prefs</font>
+on the Mac.
+<P>
+When you quit the interface, you can either exit and save the
+current configuration to the global configuration file or simply quit
+the interface.
+
+<HR>
+<A NAME="Other"></A>
+<H1>Other settings</H1>
+Here are the other settings that may be useful.
+<A NAME="SetHallHome"></A>
+<H4>Set Hall home ...</H4>
+You can manually set the Hall home angle using
+  using the menu item <FONT FACE="Helvetica">Hardware Setup &#8594;
+Set Hall home ...</FONT>
+<center>
+  <img src="pics/set_hall_home.png">
+</center>
+<center>
+<img src="pics/set_hall_home_angle.png">
+</center>
+
+<A NAME="IsCorrectionCW"></A>
+<H4>Is correction clockwise?</H4>
+You have to set the direction of the derotation so that the
+correction is in the desired direction.
+<center>
+<img src="pics/is_clockwise.png">
+</center>
+
+<HR>
+<A NAME="Messages"></A>
+<H1>Messages</H1>
+The info, trace and error messages are displayed in this window.
+<center>
+<img src="pics/messages.png">
+</center>
+These messages are stored in
+<center>
+<FONT FACE="Courier">./logs/derot_$(DATE)_($TIME).log</FONT>
+</center>
+The trace messages are useful to figuring out start and stop angles
+when derotation is executed etc.
+<HR>
+<A NAME="Commandline"></A>
+<H1>Commandline interface</H1>
+There is a commandline interface that you can use for controlling the
+derotator for taking flats. You start the commandline interface by
+having options on the commandline. For example,
+<center>
+<pre>
+  derot -h
+</pre>
+</center>
+which shows the commandline options are:
+<pre>
+  -h [ --help ]          this message
+  -i [ --ip ] arg        ip address of derotator
+  -S [ --Serial ] arg    serial device to derotator
+  -s [ --srange ] arg    start and stop in steps (separated by a space)
+  -d [ --drange ] arg    start and stop in degrees (separated by a space)
+  -D [ --gotoD ] arg     goto degrees w.r.t. home
+  -G [ --gotoS ] arg     goto steps w.r.t. home
+  -t [ --time ] arg      time to complete from start to stop in seconds
+  -v [ --version ]       print version
+</pre>
+<P>
+If there are no commandline options, the usual graphical interface pops up.
+
+<A NAME="Flats"></A>
+<H4>Taking flats</H4>
+
+There are shell scripts that is in the scripts directory that can be
+used to take flats. These scripts were written for MacOSX (or Linux)
+and require <font face="Courier">socat</font> and <font
+face="Courier">Nebulosity</font> to work. You can get the instructions
+for taking flats <a href="../help_flats/help_flats.html">here</a>.
+
+
+
+<HR>
+<A NAME="Copyright"></A>
+<H1>GNU Free Documentation License</H1>
+
+This document is copyrighted under the <a
+href=../copyright.txt>GNU Free Documentation License</a>

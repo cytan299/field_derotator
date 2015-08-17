@@ -1,0 +1,395 @@
+<!--
+    Controller User's Guide
+-->
+<center>
+<H1>Field DeRotator Controller User's Guide</H1>
+<img src="pics/controller_large.png">
+</center>
+
+<HR>
+<center>
+by
+</center>
+<center>
+C.Y. Tan
+</center>
+<center>
+June 2015
+</center>
+<HR>
+
+<H1>Copyright</H1>
+  <pre>
+    Copyright (C)  2015 C.Y. Tan
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.3
+    or any later version published by the Free Software Foundation;
+    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+    A copy of the license is included in the section entitled "GNU
+    Free Documentation License".
+  </pre>
+<HR>
+
+<H1>Table of Contents</H1>
+<UL>
+  <LI> <a href="#Introduction">Introduction</A>
+  <LI> <a href="#Nomenclature">Nomenclature</A>
+  <LI> <a href="#Switches">Pushbutton switches</A>
+  <LI> <a href="#Exit">Exiting a menu</A>    
+  <LI> <a href="#Connecting">Connecting the controller to the derotator</A>
+  <LI><a href="#SettingHallUserHome">Setting up Hall and User home for
+  the first time</A>
+  <UL>
+    <LI><a href="#SettingHallHome">Setting Hall home</A>
+    <LI><a href="#SettingUserHome">Setting User home</A>
+  </UL>  
+  <LI> <a href="#Home">Setting up HOME (normal operations)</A>
+  <LI> <a href="#ArbitraryAngle">Rotating to an arbitrary angle</A>
+  <LI> <a href="#SettingLimits">Setting the CW and CCW limits</A>
+  <LI> <a href="#Derotation">Derotation</A>
+  <UL>
+    <LI><a href="#StartDeRotation">Starting the derotation</A>
+    <LI><a href="#StopDeRotation">Stopping the derotation</A>
+  </UL>
+  <LI> <a href="#Configurations">Saving and loading configurations</A>
+  <LI> <a href="#Other">Other settings</A>
+    <UL>
+    <LI><a href="#IsCorrectionCW">Is correction clockwise?</A>
+    </UL>
+  <LI> <a href="#Copyright">GNU Free Documentation License Notice</A>
+</UL>
+<HR>
+
+<A NAME="Introduction"></A>
+<H1> Introduction </H1>
+This is the guide for operating the controller of the Field DeRotator. The
+controller connects directly to the derotator. You can 
+<UL>
+  <LI> use the controller to control the derotator directly</LI>
+  <LI> communicate with the controller via a serial line and control
+  the derotator using the interface</LI>
+  <LI> communicate with the controller via WIFI and control the
+  derotator using the interface</LI>  
+</UL>
+The first method will be discussed here. The second and third methods
+are discussed in the <a
+href="../help_interface/help_interface.html">Interface User's Guide</a>.
+
+
+<HR>
+
+<A NAME="Nomenclature"></A>
+<H1>Nomenclature</H1>
+<center>
+<H4>Interface</H4>
+</center>
+<center>
+<img src="pics/interface.png">
+</center>
+
+<center>
+<H4>Controller</H4>
+</center>
+<center>
+<img src="pics/controller.png">
+</center>
+
+<center>
+<H4>DeRotator</H4>
+</center>
+<center>
+<img src="pics/controller_derotator.png">
+</center>
+
+<HR>
+
+<A NAME="Switches"></A>
+<H1>Pushbutton switches</H1>
+The controller has push button switches
+<center>
+<img src="pics/ccw_cw.png">
+</center>
+that do the following when you push them:
+<UL>
+  <LI> Menu up and down buttons are used to move the menu cursor up
+  and down.
+  <LI> Menu items are selected using the OK button.
+  <LI>The camera can be rotated clockwise (CW) and counter-clockwise (CCW) by continuously
+pressing these two buttons. If the CW or CCW limits are enabled and reached, the camera will stop
+rotating even if you continue pressing these buttons. A message will
+  popup that tell you that these limits have been reached.
+</UL>
+<HR>
+
+<A NAME="Exit"></A>
+<H1>Exiting a menu</H1>
+To exit a menu, you scroll down to the menu item using the Menu
+up/down buttons. Here is an example of the EXIT menu item
+<center>
+<img src="pics/exit.png">
+</center>
+Then you press the OK button to exit the current menu.
+
+<HR>
+
+<A NAME="Connecting"></A>
+<H1> Connecting the controller to the derotator</H1>
+
+The controller is connected to the derotator with an ethernet cable
+from the driver socket on the controller to the input socket on the derotator.
+<center>
+<img src="pics/driver_2_derotator.png">
+</center>
+
+The controller is connected to the LX200 with a 6P6C (reversed) cable
+from the RS232 socket on the controller to the RS232 socket on the LX200.
+<center>
+<img src="pics/lx200_2_derotator.png">
+</center>
+
+The controller is powered with a 9 V brick power supply.
+<center>
+<img src="pics/power_2_brick.png">
+</center>
+
+<HR>
+<A NAME="SettingHallUserHome"></A>
+<H1> Setting up Hall and User home for the first time</H1>
+This, in principle, is only done once when you first attach the camera
+to the derotator. You have to define where the Hall and User homes are
+and then save these positions into the EEPROM. Once this is done, you
+do not need to do this again unless you remove the camera from the derotator.
+
+<A NAME="SettingHallHome"></A>
+<H4> Setting Hall home </H4>
+The first thing you have to do is to mark the Hall home position on the camera and the
+derotator. The Hall home position defined to be where the magnet on
+the drive gear meets the Hall switch. 
+<center>
+  <img src="pics/Hall_home.png">  
+</center>
+These markings can be approximate because for accuracy, you will use
+the controller to rotate the camera to find Hall home. Select
+<center>
+<FONT FACE="Helvetica">
+Control Menu &#8594; Goto HALL HOME
+  </FONT>
+</center>
+<center>
+  <img src="pics/goto_hall_home.png">
+</center>
+Once the controller finds the Hall home by rotating CCW, this message
+pops up for about 2 seconds 
+<center>
+  <img src="pics/hall_found.png">
+</center>
+<u>The controller will only rotate CCW to find Hall home!</u> You can
+rotate the camera using the CW and CCW buttons to ensure that when
+<FONT FACE="Helvetica">
+Goto HALL HOME
+  </FONT> is selected, the camera is at a position when this
+command is executed, Hall home can be found.
+<P>
+If the Hall home is not found after rotating by CCW by 10 degrees, an
+error pops up for 2 seconds
+<center>
+  <img src="pics/hall_not_found.png">
+</center>
+You continue executing the <FONT FACE="Helvetica">
+Goto HALL HOME</FONT> command until Hall home is found.
+
+<A NAME="SettingUserHome"></A>
+<H4> Setting User home </H4>
+You have to rotate the camera with the CW and CCW buttons on the
+controller so that it is vertical. You can use a
+bubble level to determine when the camera is vertical.
+<center>
+  <img src="pics/bubble_level.png">
+</center>
+Once you have found the vertical, you have to tell the controller that
+this is the User Home that you have found
+<center>
+<FONT FACE="Helvetica">
+Settings &#8594; Set User Home
+  </FONT>
+</center>
+<center>
+  <img src="pics/set_user_home.png">
+</center>
+And you save this position to EEPROM so that you do not need to do
+this again unless you remove the camera from the derotator.
+<center>
+<FONT FACE="Helvetica">
+Settings &#8594; Save settings
+  </FONT>
+</center>
+<center>
+  <img src="pics/save_settings.png">
+</center>
+<HR>
+
+<A NAME="Home"></A>
+<H1>Setting up HOME (normal operations)</H1>
+
+After you have powered up the controller and derotator, the first
+thing you need to do is to calibrate the system by finding Hall
+Home. You do this by rotating the camera with the CW and CCW buttons
+until the markings on the camera and the derotator, that indicate where
+the magnet and Hall switch are, line up approximately. You then select
+<center>
+<FONT FACE="Helvetica">
+Control Menu &#8594; Goto HALL HOME
+  </FONT>
+</center>
+<center>
+  <img src="pics/goto_hall_home.png">
+</center>
+Once the controller finds the Hall home by rotating CCW, this message
+pops up for about 2 seconds 
+<center>
+  <img src="pics/hall_found.png">
+</center>
+<u>The controller will only rotate CCW to find Hall home!</u> You can
+rotate the camera using the CW and CCW buttons to ensure that when
+<FONT FACE="Helvetica">
+Goto HALL HOME
+  </FONT> is selected, the camera is at a position when this
+command is executed, Hall home can be found.
+<P>
+If the Hall home is not found after rotating by CCW by 10 degrees, an
+error pops up for 2 seconds
+<center>
+  <img src="pics/hall_not_found.png">
+</center>
+You continue executing the <FONT FACE="Helvetica">
+Goto HALL HOME</FONT> command until Hall home is found.
+<P>
+You exit this menu and go back to
+<center>
+<FONT FACE="Helvetica">
+Control Menu &#8594; Goto User Home
+  </FONT>
+</center>
+<center>
+  <img src="pics/goto_user_home.png">
+</center>
+and select Goto User Home. If you had previously saved User Home Position into the EEPROM,
+the camera will rotate to the User Home Position. <u>This is the "HOME"
+position that you should set the camera up before using the
+interface.</u>
+<HR>
+
+<A NAME="ArbitraryAngle"></A>
+<H1>Rotating to an arbitrary angle</H1>
+You can rotate the camera any arbitrary angle by pressing either the
+CCW or CW buttons
+<center>
+<img src="pics/ccw_cw.png">
+</center>
+The only constraint is that if limits are enabled, then when the
+limits are reached, a message will pop up telling you that you have
+reached a limit.
+<HR>
+<A NAME="SettingLimits"></A>
+<H1>Setting the CW and CCW limits</H1>
+You rotate the camera to the CCW or CW positions where you wish to
+limit the rotation angle. After you have rotated the camera to the
+position that you desire, you select
+<center>
+<FONT FACE="Helvetica">
+Setup Menu &#8594; Set Max CW
+</FONT>
+</center>
+or
+<center>
+<FONT FACE="Helvetica">
+Setup Menu &#8594; Set Max CCW
+</FONT>
+</center>
+<center>
+<img src="pics/max_ccw_cw.png">
+</center>
+Then you enable the rotation limits by selecting
+<center>
+<FONT FACE="Helvetica">
+Setup Menu &#8594; Enable limits?
+  </FONT>
+</center>
+<center>
+<img src="pics/enable_limits.png">
+</center>
+
+<HR>
+<A NAME="Derotation"></A>
+<H1>Derotation</H1>
+The goal of the derotator is, of course, to perform derotation.
+You can start derotation after you have connected the controller to
+the <a href="#Connecting">telescope and power supply</a>.
+
+<A NAME="StartDeRotation"></A>
+<H4>Starting the derotation</H4>
+You start derotation by selecting
+<center>
+<FONT FACE="Helvetica">Start</FONT> 
+</center>
+<center>
+  <img src="pics/start.png">  
+</center>
+A display pops up to show the alt-az angles (&eta;, &xi;) of the telescope, and
+the derotating angle &zeta;. This is an example of the display that
+you should see
+<P>
+<center>
+  <img src="pics/derotating.png">  
+</center>
+<P>
+<A NAME="StopDeRotation"></A>
+<H4>Stopping the derotation</H4>
+You can stop derotation at any time by pressing the OK button.
+<center>
+  <img src="pics/ok.png">  
+</center>
+<HR>
+<A NAME="Configurations"></A>
+<H1>Saving and loading configurations</H1>
+You can save the User Home, IP address, and other parameters of the derotator
+into the onboard EEPROM by selecting
+<center>
+<FONT FACE="Helvetica">
+Setup Menu &#8594; Save settings
+  </FONT>
+</center>
+<center>
+  <img src="pics/save_settings.png">  
+</center>
+You can reload these settings by selecting
+<center>
+<FONT FACE="Helvetica">
+Setup Menu &#8594; Load settings
+  </FONT>
+</center>
+<center>
+  <img src="pics/load_settings.png">  
+</center>
+On controller bootup, these settings are automatically loaded.
+<HR>
+<A NAME="Other"></A>
+<H1>Other settings</H1>
+<A NAME="IsCorrectionCW"></A>
+<H4>Is correction clockwise?</H4>
+You can choose the direction of the derotation by selecting this
+option
+<center>
+<FONT FACE="Helvetica">
+Setup Menu &#8594; Clockwise?
+  </FONT>
+</center>
+<center>
+  <img src="pics/clockwise.png">  
+</center>
+<HR>
+<A NAME="Copyright"></A>
+<H1>GNU Free Documentation License</H1>
+
+This document is copyrighted under the <a
+href=../copyright.txt>GNU Free Documentation License </a>

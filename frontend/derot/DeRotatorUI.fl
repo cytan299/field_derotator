@@ -1,0 +1,1637 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.h}
+code_name {.cxx}
+comment {    derot is the GUI frontend that controls the field derotator
+    Copyright (C) 2015  C.Y. Tan
+    Contact: cytan299@yahoo.com
+
+    This file is part of derot
+
+    derot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    derot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with derot.  If not, see <http://www.gnu.org/licenses/>.
+} {in_source in_header
+}
+
+class DeRotatorUI {
+  comment {The GUI frontend that allows the user to control the field de-rotator.} open
+} {
+  decl {SerialClient* _serial_client;} {public local
+  }
+  decl {TCPClient* _tcp_client;} {public local
+  }
+  decl {Fl_Text_Buffer *_message_buffer;} {public local
+  }
+  decl {DeRotatorConfig* _derotator_config;} {public local
+  }
+  decl {Fl_Help_Dialog *_introduction;} {public local
+  }
+  decl {Fl_Help_Dialog *_interface_help;} {public local
+  }
+  decl {Fl_Help_Dialog *_controller_help;} {public local
+  }
+  decl {string _help_dir} {public local
+  }
+  Function {DeRotatorUI()} {open
+  } {
+    Fl_Window mainWindow {
+      label {Field DeRotator}
+      callback {exit(0);} open
+      xywh {646 64 398 478} type Double box UP_BOX
+      code0 {\#include <string>}
+      code1 {\#include <iostream>}
+      code2 {\#include "logging.hpp"} visible
+    } {
+      Fl_Group {} {
+        label Settings open
+        xywh {5 25 385 75} box ENGRAVED_BOX labeltype NO_LABEL
+      } {
+        Fl_Button Send {
+          label Send
+          callback {using namespace std;
+
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;  
+
+double home_angle;
+RequestPacket rq;
+switch(derotator_graphics->GetDrawingMode()){
+  case DeRotatorGraphics::CAMERA_OUTLINE_MODE:
+    home_angle = derotator_graphics->GetHomeAngle(); // deg
+    rq._command = CMD_GOTO_THETA;
+    rq._fvalue[0] = FA2HA(derotator_graphics->ZOutlineAngle() - home_angle); // deg
+\#ifdef AAAAA    
+    cerr << "Sending theta (HA) = " << rq._fvalue[0] << "\\n";
+\#endif   
+    if(SendCommand(&rq) != REPLY_OK){    
+      LOG_ERROR << "DeRotatorUI::Send: SendCommand() error";
+      return;
+    }
+    
+    // deactive buttons that can cause trouble when inadvertently hit by the user
+    Start->deactivate();
+    Home->deactivate();
+    SetHome->deactivate();
+    SetCWLimit->deactivate();
+    SetCCWLimit->deactivate();
+    
+    //Now start a timer to collect angle data from the derotator
+    Fl::add_timeout(REPEAT_TIME, timer_cb2, this);
+  break;
+  
+  case DeRotatorGraphics::HOME_MODE:
+    rq._command = SETUP_SET_USER_HOME;
+    rq._fvalue[0] = FA2HA(atof(deg->value()));
+ \#ifdef AAAAA
+    cerr << "Sending (HA): " << rq._fvalue[0] << "\\n";
+ \#endif   
+    if(SendCommand(&rq) != REPLY_OK){     
+      LOG_ERROR << "DeRotatorUI::Send: SendCommand() error";
+      return;
+    } 
+    
+    LOG_TRACE << "Home Angle: "
+          << "deg = " << deg->value() << ", "
+          << "steps = " << steps->value(); 
+         
+    break;
+    
+  case DeRotatorGraphics::CW_POS_MODE:
+    // opposite between frontend and derotator
+    rq._command = SETUP_MAX_CCW;
+    rq._fvalue[0] = FA2HA(atof(deg->value()));
+ \#ifdef AAAAA   
+    cerr << "Sending (HA): " << rq._fvalue[0] << "\\n";
+ \#endif   
+    if(SendCommand(&rq) != REPLY_OK){
+      LOG_ERROR << "DeRotatorUI::Send: SendCommand() error";
+      return;
+    } 
+
+    break;
+    
+  case DeRotatorGraphics::CCW_POS_MODE:
+  // opposite between frontend and derotator
+    rq._command = SETUP_MAX_CW;
+    rq._fvalue[0] = FA2HA(atof(deg->value()));
+ \#ifdef AAAAA   
+    cerr << "Sending (HA): " << rq._fvalue[0] << "\\n";
+ \#endif   
+    if(SendCommand(&rq) != REPLY_OK){    
+      LOG_ERROR << "DeRotatorUI::Send: SendCommand() error";
+      return;
+    } 
+
+    break;
+}}
+          xywh {10 30 70 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
+        }
+        Fl_Light_Button SetHome {
+          label {Set
+Home}
+          callback {if(o->value() > 0) { // toggled
+  // disable buttons that cannot be used
+  SetCWLimit->deactivate();
+  SetCCWLimit->deactivate();
+  Start->deactivate();
+  Stop->deactivate();
+  Home->deactivate();
+  
+  // update the steps and deg input boxes
+  char buf[32];
+  sprintf(buf, "%4.2f", derotator_graphics->GetHomeAngle());
+  deg->value(buf);
+  sprintf(buf, "%4d",
+          static_cast<int>(derotator_graphics->GetHomeAngle()/MECHANICAL_STEPSIZE));
+  steps->value(buf);
+
+  
+  derotator_graphics->SetDrawingMode(DeRotatorGraphics::HOME_MODE);
+ }
+else {
+  SetCWLimit->activate();
+  SetCCWLimit->activate();
+  Start->activate();
+  Stop->activate();
+  Home->activate();
+  
+  // query the derotator for the current user home position
+  RequestPacket rq;
+  rq._command = CMD_GET_USER_HOME_POS;
+  ReplyPacket rp;
+
+  if(SendCommand(&rq, &rp) != REPLY_OK){
+    using namespace logging::trivial;
+    src::severity_logger< severity_level > lg;    
+    LOG_ERROR << "DeRotatorUI::SetUserHome: SendCommand() get home pos error";
+    derotator_graphics->SetDrawingMode(DeRotatorGraphics::CAMERA_OUTLINE_MODE);
+    derotator_graphics->redraw();
+    
+    // also reset the steps and deg boxes of the camera outline
+    char buf[32];
+    sprintf(buf, "%4.2f", derotator_graphics->ZOutlineAngle());
+    deg->value(buf);
+    sprintf(buf, "%4d", static_cast<int>(derotator_graphics->ZOutlineAngle()/MECHANICAL_STEPSIZE));
+    steps->value(buf);
+
+    return;
+  }
+  
+  double angle = HS2FA(rp._fvalue[0]); // degrees
+
+  derotator_graphics->SetHomeAngle(angle); // degrees
+  derotator_graphics->SetDrawingMode(DeRotatorGraphics::CAMERA_OUTLINE_MODE);
+  
+  // also reset the steps and deg boxes to that of the camera outline
+  char buf[32];
+  sprintf(buf, "%4.2f", derotator_graphics->ZOutlineAngle());
+  deg->value(buf);
+  sprintf(buf, "%4d", static_cast<int>(derotator_graphics->ZOutlineAngle()/MECHANICAL_STEPSIZE));
+  steps->value(buf);
+}
+
+derotator_graphics->redraw();}
+          xywh {83 30 70 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX selection_color 4 labelsize 11
+        }
+        Fl_Light_Button SetCWLimit {
+          label {Set
+CW
+Limit}
+          user_data this user_data_type {DeRotatorUI*}
+          callback {if(o->value() > 0) { // toggled
+  // disable buttons that cannot be used
+  SetHome->deactivate();
+  SetCCWLimit->deactivate();
+  Start->deactivate();
+  Stop->deactivate();
+  Home->deactivate();
+  
+  // update the steps and deg input boxes
+  char buf[32];
+  sprintf(buf, "%4.2f", derotator_graphics->GetMaxCWAngle());
+  deg->value(buf);
+  sprintf(buf, "%4d",
+          static_cast<int>(derotator_graphics->GetMaxCWAngle()/MECHANICAL_STEPSIZE));
+  steps->value(buf);
+  
+  derotator_graphics->SetDrawingMode(DeRotatorGraphics::CW_POS_MODE); 
+
+}
+else {
+
+  using namespace logging::trivial;;
+  src::severity_logger< severity_level > lg;      
+
+  // enable buttons that cannot be used
+  SetHome->activate();
+  SetCCWLimit->activate();
+  Start->activate();
+  Stop->activate();
+  Home->activate();
+  
+  // query the derotator for the max cw position
+  // note the opposite that CW here is equivalent to CCW
+  // of the hardware
+  RequestPacket rq;
+  rq._command = CMD_GET_MAX_CCW_POS;
+  ReplyPacket rp;
+
+  if(SendCommand(&rq, &rp) != REPLY_OK){
+    LOG_ERROR << "DeRotatorUI::SetUserHome: SendCommand() get max cw pos error";
+    
+    derotator_graphics->SetDrawingMode(DeRotatorGraphics::CAMERA_OUTLINE_MODE);
+    derotator_graphics->redraw();
+    
+    // also reset the steps and deg boxes of the camera outline
+    char buf[32];
+    sprintf(buf, "%4.2f", derotator_graphics->ZOutlineAngle());
+    deg->value(buf);
+    sprintf(buf, "%4d", static_cast<int>(derotator_graphics->ZOutlineAngle()/MECHANICAL_STEPSIZE));
+    steps->value(buf);
+
+    return;
+  }
+  
+  double angle = HS2FA(rp._fvalue[0]); // degrees
+
+  derotator_graphics->SetMaxCWAngle(angle); // degrees
+    cerr << "max cw angle (FA) = " << angle << "\\n";
+    derotator_graphics->SetDrawingMode(DeRotatorGraphics::CAMERA_OUTLINE_MODE);
+  
+  // also reset the steps and deg boxes of the camera outline
+  char buf[32];
+  sprintf(buf, "%4.2f", derotator_graphics->ZOutlineAngle());
+  deg->value(buf);
+  sprintf(buf, "%4d", static_cast<int>(derotator_graphics->ZOutlineAngle()/MECHANICAL_STEPSIZE));
+  steps->value(buf);
+
+}
+
+derotator_graphics->redraw();}
+          xywh {156 30 70 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX selection_color 4 labelsize 11
+        }
+        Fl_Light_Button SetCCWLimit {
+          label {Set
+CCW
+Limit}
+          callback {if(o->value() > 0) { // toggled
+  // disable buttons that cannot be used
+  SetHome->deactivate();
+  SetCWLimit->deactivate();
+  Start->deactivate();
+  Stop->deactivate();
+  Home->deactivate();
+  
+    
+  // update the steps and deg input boxes
+  char buf[32];
+  sprintf(buf, "%4.2f", derotator_graphics->GetMaxCCWAngle());
+  deg->value(buf);
+  sprintf(buf, "%4d",
+          static_cast<int>(derotator_graphics->GetMaxCCWAngle()/MECHANICAL_STEPSIZE));
+  steps->value(buf);
+  
+  derotator_graphics->SetDrawingMode(DeRotatorGraphics::CCW_POS_MODE);
+
+}
+else {
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+   
+  // enable buttons that cannot be used
+  SetHome->activate();
+  SetCWLimit->activate();
+  Start->activate();
+  Stop->activate();
+  Home->activate();
+  
+  // query the derotator for the current max ccw position
+  // note the opposite that CCW here is equivalent to CW
+  // of the hardware
+  RequestPacket rq;
+  rq._command = CMD_GET_MAX_CW_POS;
+  ReplyPacket rp;
+
+  if(SendCommand(&rq, &rp) != REPLY_OK){
+    LOG_ERROR << "DeRotatorUI::SetUserHome: SendCommand() get max ccw pos error";
+    
+    derotator_graphics->SetDrawingMode(DeRotatorGraphics::CAMERA_OUTLINE_MODE);
+    derotator_graphics->redraw();
+    
+    // also reset the steps and deg boxes of the camera outline
+    char buf[32];
+    sprintf(buf, "%4.2f", derotator_graphics->ZOutlineAngle());
+    deg->value(buf);
+    sprintf(buf, "%4d", static_cast<int>(derotator_graphics->ZOutlineAngle()/MECHANICAL_STEPSIZE));
+    steps->value(buf);
+
+    return;
+  }
+  
+  double angle = HS2FA(rp._fvalue[0]); // degrees
+
+  derotator_graphics->SetMaxCCWAngle(angle); // degrees
+      cerr << "max ccw angle (FA) = " << angle << "\\n";
+      
+  derotator_graphics->SetDrawingMode(DeRotatorGraphics::CAMERA_OUTLINE_MODE);
+  
+  // also reset the steps and deg boxes to that of the camera outline
+  char buf[32];
+  sprintf(buf, "%4.2f", derotator_graphics->ZOutlineAngle());
+  deg->value(buf);
+  sprintf(buf, "%4d", static_cast<int>(derotator_graphics->ZOutlineAngle()/MECHANICAL_STEPSIZE));
+  steps->value(buf);
+
+
+}
+
+derotator_graphics->redraw();}
+          xywh {229 30 70 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX selection_color 4 labelsize 11
+        }
+        Fl_Value_Input steps {
+          label steps
+          callback {double home_angle = derotator_graphics->GetHomeAngle();
+double angle;
+switch(derotator_graphics->GetDrawingMode()){
+  case DeRotatorGraphics::CAMERA_OUTLINE_MODE:
+    angle = atof(((Fl_Int_Input*)o)->value())*MECHANICAL_STEPSIZE;
+    derotator_graphics->ZOutlineAngle(angle + home_angle);
+  break;
+  
+  case DeRotatorGraphics::HOME_MODE:
+   // update the tmp angle in DeRotatoGraphics, only Send can update the permanent angles
+   derotator_graphics->SetTmpHomeAngle(atof(((Fl_Int_Input*)o)->value())*MECHANICAL_STEPSIZE);
+  break;
+  
+  case DeRotatorGraphics::CW_POS_MODE:
+   derotator_graphics->SetTmpCWAngle(atof(((Fl_Int_Input*)o)->value())*MECHANICAL_STEPSIZE);
+  break;
+  
+  case DeRotatorGraphics::CCW_POS_MODE:
+   derotator_graphics->SetTmpCCWAngle(atof(((Fl_Int_Input*)o)->value())*MECHANICAL_STEPSIZE);
+  break;
+}
+
+derotator_graphics->redraw();
+
+// and then the deg box
+char buf[32];
+sprintf(buf, "%4.2f",
+	atof(((Fl_Int_Input*)o)->value())*MECHANICAL_STEPSIZE);
+deg->value(buf);}
+          xywh {305 33 40 22} labelsize 12 align 8 when 8 textsize 12
+          code0 {\#include <Fl/Fl_Int_Input.H>}
+          code1 {\#define MECHANICAL_STEPSIZE 0.05970731707 // deg/step}
+          class Fl_Int_Input
+        }
+        Fl_Value_Input deg {
+          label deg
+          callback {double home_angle = derotator_graphics->GetHomeAngle();
+double angle;
+switch(derotator_graphics->GetDrawingMode()){
+  case DeRotatorGraphics::CAMERA_OUTLINE_MODE:
+    angle = atof(((Fl_Float_Input*)o)->value());
+    derotator_graphics->ZOutlineAngle(angle + home_angle);
+  break;
+  
+  case DeRotatorGraphics::HOME_MODE:
+   // update the tmp angle in DeRotatoGraphics, only Send can update the permanent angles
+   derotator_graphics->SetTmpHomeAngle(atof(((Fl_Float_Input*)o)->value()));
+  break;
+  
+  case DeRotatorGraphics::CW_POS_MODE:
+   derotator_graphics->SetTmpCWAngle(atof(((Fl_Float_Input*)o)->value()));
+  break;
+  
+  case DeRotatorGraphics::CCW_POS_MODE:
+   derotator_graphics->SetTmpCCWAngle(atof(((Fl_Float_Input*)o)->value()));
+  break;
+}
+
+derotator_graphics->redraw();
+    
+char buf[32];
+// and then the steps box
+sprintf(buf, "%4d",
+	static_cast<int>(atof(((Fl_Float_Input*)o)->value())/MECHANICAL_STEPSIZE));
+steps->value(buf);}
+          xywh {305 68 40 22} labelsize 12 align 8 when 10 textsize 12
+          code0 {\#include <Fl/Fl_Float_Input.H>}
+          class Fl_Float_Input
+        }
+      }
+      Fl_Group {} {
+        label Control open
+        xywh {5 380 385 95} box ENGRAVED_BOX labeltype NO_LABEL
+      } {
+        Fl_Button Start {
+          label {Start @>}
+          callback {using namespace std;
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;   
+
+RequestPacket rq;
+
+/* get telescope position */
+rq._command = CMD_GET_ALTAZ_ZETA;
+ReplyPacket rp;
+
+if(SendCommand(&rq, &rp) == REPLY_OK){
+  LOG_TRACE << "Start: telescope at ("
+            << rp._fvalue[0] << ", "
+            << rp._fvalue[1]  << ")";
+}
+else {
+  LOG_ERROR << "DeRotatorUI::Start: SendCommand() failed";
+  return;
+}
+
+/* Now we can really start ...*/
+rq._command = DEROTATOR_START;
+
+if(SendCommand(&rq) != REPLY_OK){   
+  LOG_ERROR << "DeRotatorUI::Start: SendCommand() failed";
+  return;
+}
+
+// deactivate buttons that could cause problems when pressed during this time
+Start->deactivate();
+Home->deactivate();
+
+Send->deactivate();
+SetHome->deactivate();
+SetCWLimit->deactivate();
+SetCCWLimit->deactivate();
+
+// write out the time where derotation started plus camera position
+LOG_TRACE << "Start: "
+          << "deg = " << deg->value() << ", "
+          << "steps = " << steps->value();
+
+                   
+//Now start a timer to collect angle data from the derotator
+Fl::add_timeout(REPEAT_TIME, timer_cb, this);}
+          xywh {10 396 64 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
+          code0 {\#define REPEAT_TIME 0.5}
+        }
+        Fl_Button Stop {
+          label {Stop @||}
+          callback {using namespace std;
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;
+  
+// remove all timer callbacks for updates
+Fl::remove_timeout(timer_cb, this);
+Fl::remove_timeout(timer_cb1, this);
+Fl::remove_timeout(timer_cb2, this);
+
+
+RequestPacket rq;
+rq._command = DEROTATOR_STOP;
+
+if(SendCommand(&rq) != REPLY_OK){    
+  LOG_ERROR << "DeRotatorUI::Stop: SendCommand() failed";
+  return;
+}
+
+LOG_TRACE << "Stop: " 
+          << "deg = " << deg->value() << " "
+          << "steps = " << steps->value();
+          
+/* get telescope position */
+rq._command = CMD_GET_ALTAZ_ZETA;
+ReplyPacket rp;
+
+if(SendCommand(&rq, &rp) == REPLY_OK){
+  LOG_TRACE << "Stop: telescope at ("
+            << rp._fvalue[0] << ", "
+            << rp._fvalue[1]  << ")";
+
+
+}
+else {
+  LOG_ERROR << "DeRotatorUI::Stop: SendCommand() failed";
+  return;
+}
+
+
+
+// reactivate buttons that were previously deactivated
+Start->activate();
+Home->activate();
+
+Send->activate();
+SetHome->activate();
+SetCWLimit->activate();
+SetCCWLimit->activate();}
+          xywh {80 396 64 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelcolor 1
+        }
+        Fl_Button Home {
+          label {Home @menu}
+          callback {using namespace std;
+// stop the timer callback for updates
+Fl::remove_timeout(timer_cb1, this);
+
+RequestPacket rq;
+rq._command = DEROTATOR_GOTO_USER_HOME;
+
+if(SendCommand(&rq) != REPLY_OK){
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  LOG_ERROR << "DeRotatorUI::Home: SendCommand() failed";
+  return;
+}
+
+
+// deactivate buttons that could cause problems when pressed during this time
+Send->deactivate();
+SetHome->deactivate();
+SetCWLimit->deactivate();
+SetCCWLimit->deactivate();
+
+Start->deactivate();
+
+//Now start a timer to collect angle data from the derotator
+Fl::add_timeout(REPEAT_TIME, timer_cb1, this);}
+          xywh {150 396 64 64} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
+        }
+        Fl_Text_Display Messages {
+          label Messages
+          xywh {220 410 160 50}
+          code0 {_message_buffer = new Fl_Text_Buffer();}
+          code1 {Messages->buffer(_message_buffer); Messages->textsize(10);}
+          code2 {Messages->scrollbar_width(Messages->scrollbar_width()/2);}
+        }
+      }
+      Fl_Menu_Bar MenuBar {
+        label MenuBar open selected
+        xywh {0 0 448 20}
+      } {
+        Submenu {} {
+          label {&File} open
+          xywh {0 0 62 20}
+        } {
+          MenuItem OpenConfiguration {
+            label {Open Configuration ...}
+            callback {using namespace std;
+using namespace boost::filesystem;
+
+string filename;
+
+Fl_Native_File_Chooser fchooser;
+
+fchooser.title("Open Configuration");
+fchooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+fchooser.filter("*.prefs");
+fchooser.preset_file("derot.prefs");
+fchooser.directory(_derotator_config->GetUserConfigPath());
+
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;
+ 
+switch(fchooser.show()){
+  case -1: 
+    LOG_ERROR << "OpenConfiguration: error: "
+	      << fchooser.errmsg();
+    break;
+    
+  case 1: 
+    LOG_INFO << "Canceled";
+    break;
+    
+  default:
+    if(fchooser.filename()){
+      filename = fchooser.filename();
+    }  
+}
+
+if(filename.size() > 0){
+   _derotator_config->Load(filename.c_str());
+  
+  return;
+}}
+            xywh {0 0 31 20}
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include "DeRotatorConfig.hpp"}
+            code2 {\#include "boost/filesystem.hpp"}
+          }
+          MenuItem SaveConfiguration {
+            label {Save Configuration}
+            callback {if(_derotator_config->IsGotFilename()){
+    _derotator_config->Save();
+}
+else {
+    SaveConfigurationAs->do_callback(o);
+}}
+            xywh {0 0 31 20}
+          }
+          MenuItem SaveConfigurationAs {
+            label {Save Configuration As ...}
+            callback {using namespace std;
+using namespace boost::filesystem;
+
+
+string filename;
+
+Fl_Native_File_Chooser fchooser;
+
+fchooser.title("Save Configuration As");
+fchooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+fchooser.filter("*.prefs");
+fchooser.directory(_derotator_config->GetUserConfigPath());
+fchooser.options(Fl_Native_File_Chooser::NEW_FOLDER | 
+                 Fl_Native_File_Chooser::SAVEAS_CONFIRM | 
+                 Fl_Native_File_Chooser::USE_FILTER_EXT); 
+fchooser.preset_file("derot.prefs");
+
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;    
+
+switch(fchooser.show()){
+  case -1: 
+    LOG_ERROR << "SaveConfigurationAs: error: "
+	      << fchooser.errmsg();
+    break;
+    
+  case 1: 
+    LOG_INFO << "Canceled";
+    break;
+    
+  default:
+    if(fchooser.filename()){
+      filename = fchooser.filename();
+    }  
+}
+
+if(filename.size() > 0){
+  _derotator_config->Save(filename.c_str());
+    
+  return;
+}}
+            xywh {0 0 31 20} divider
+          }
+          MenuItem QuitAndSaveConfig {
+            label {Quit and save config}
+            callback {_derotator_config->Save();
+
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;
+
+LOG_INFO << "Saved global log";
+
+exit(0);}
+            xywh {0 0 31 20}
+          }
+          MenuItem Quit {
+            label Quit
+            callback {exit(0);}
+            xywh {0 0 31 20}
+          }
+        }
+        Submenu {} {
+          label {&Connect} open
+          xywh {0 0 62 20}
+          code0 {\#include "TCPClient.hpp"}
+          code1 {\#include "SerialClient.hpp"}
+        } {
+          MenuItem WifiIPAddress {
+            label {Wifi IP address ...}
+            callback {WifiIPPopup->position(mainWindow->x_root()+50, 
+                      mainWindow->y_root()+200);
+WifiIPPopup->show()}
+            xywh {0 0 31 20}
+          }
+          MenuItem SerialDevPort {
+            label {Serial port ...}
+            callback {SerialDevPopup->position(mainWindow->x_root()+50,
+                         mainWindow->y_root()+200);
+SerialDevPopup->show()}
+            xywh {0 0 31 20}
+          }
+        }
+        Submenu {} {
+          label {Hardware &Setup} open
+          xywh {0 0 62 20}
+        } {
+          MenuItem QueryHardware {
+            label {Query hardware}
+            callback {// get the angle of the derotator clockwise state
+using namespace std;
+
+RequestPacket rq;
+rq._command = CMD_QUERY_STATE;
+
+if(_serial_client){
+  if(_serial_client->Send(&rq) != 0){
+    throw string("Send request failed");
+  }  
+}
+
+if(_tcp_client){
+  if(_tcp_client->Send(&rq) != 0){
+    throw string("Send request failed");
+  }  
+}
+
+
+StatusPacket sp;
+if(_serial_client){
+  if(_serial_client->Receive(&sp) !=0){
+    throw string("Did not receive reply packet");
+  }
+}
+
+if(_tcp_client){
+  if(_tcp_client->Receive(&sp) !=0){
+    throw string("Did not receive reply packet");
+  }
+}   
+
+if(sp._reply == REPLY_OK){
+  sp._is_clockwise_correction > 0? IsClockWise->set(): IsClockWise->clear();
+  
+  if(sp._is_enable_limits > 0){
+    IsLimitsEnabled->set();
+    derotator_graphics->EnableLimits();
+  }
+  else {
+    IsLimitsEnabled->clear();
+    derotator_graphics->DisableLimits();
+  }
+  
+  double home_angle = HS2FA(sp._home_pos);
+  double angle = HA2FA(sp._angle) + home_angle;// get the absolute angle of the camera
+  
+  derotator_graphics->ZCameraAngle(angle);
+  derotator_graphics->ZOutlineAngle(angle);
+  derotator_graphics->ZAngle(sp._accumulated_angle);
+  
+  derotator_graphics->SetHomeAngle(home_angle);
+  
+  // note that I have to reverse the max cw angle between
+  // the derotator and the frontend because CW and CCW is
+  // defined in the opposite direction.
+  derotator_graphics->SetMaxCWAngle(HS2FA(sp._max_ccw));
+  derotator_graphics->SetMaxCCWAngle(HS2FA(sp._max_cw));
+
+   
+  derotator_graphics->redraw();
+  
+  char buf[32];
+  sprintf(buf, "%4.2f", HA2FA(sp._angle));
+  deg->value(buf);
+  
+  sprintf(buf, "%4d", static_cast<int>(HA2FS(sp._angle)));
+  steps->value(buf);
+  
+  // update the ssid and security type
+  WLANSSID->value(sp._WLAN_ssid);
+  WLANSecurity->value(sp._WLAN_security);
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  
+  LOG_INFO << "is clockwise direction " << sp._is_clockwise_correction;
+  LOG_INFO << "home pos (FS)  = " << sp._home_pos;
+  LOG_INFO << "max cw (FS) = " << sp._max_cw; 
+  LOG_INFO << "max ccw (FS) = " << sp._max_ccw;
+  LOG_INFO << "is enable limits = " << sp._is_enable_limits;
+  LOG_INFO << "angle (FA) = " << sp._angle;
+  LOG_INFO << "accumulated angle = " << sp._accumulated_angle;
+  LOG_INFO << "WLAN ssid = " << sp._WLAN_ssid;
+  LOG_INFO << "WLAN security = " << sp._WLAN_security;
+  
+  LOG_INFO << "Setting Hall home " << -HS2FA(sp._home_pos);
+  derotator_graphics->SetHallAngle(-HS2FA(sp._home_pos));
+  derotator_graphics->SetHomeAngle(HS2FA(sp._home_pos));
+}
+else {
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;          
+// throw string("Reply is not ok");
+  LOG_ERROR << "Reply is not ok";
+  LOG_ERROR << "Got reply = " << sp._reply;
+}}
+            xywh {0 0 31 20} divider
+            code0 {\#include "StatusPacket.hpp"}
+          }
+          MenuItem SetHallHome {
+            label {Set Hall home ...}
+            callback {SetHallHomePopup->position(mainWindow->x_root()+50, 
+                           mainWindow->y_root()+200);
+                      
+char buf[32];
+sprintf(buf, "%4.2f", derotator_graphics->GetHallAngle());
+HallAngleInput->value(buf);
+                         
+SetHallHomePopup->show();}
+            xywh {0 0 31 20} divider
+          }
+          MenuItem IsLimitsEnabled {
+            label {Are limits enabled?}
+            callback {// enable or disable the derotator limits 
+using namespace std;
+
+RequestPacket rq;
+rq._command = SETUP_ENABLE_LIMITS;
+// if "are cw and ccw limits enabled?" button is checked if it is enabled
+rq._ivalue = IsLimitsEnabled->value() != 0? 1:0; 
+
+if(SendCommand(&rq) != REPLY_OK){
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  LOG_ERROR << "DeRotatorUI::IsLimitsEnabled: SendCommand() failed";
+  return;
+}
+
+IsLimitsEnabled->value() != 0? 
+  derotator_graphics->EnableLimits(): derotator_graphics->DisableLimits();
+  
+derotator_graphics->redraw();}
+            xywh {0 0 31 20} type Toggle
+          }
+          MenuItem IsClockWise {
+            label {Is correction clockwise?}
+            callback {// set the derotator clockwise state
+using namespace std;
+
+RequestPacket rq;
+rq._command = SETUP_IS_CLOCKWISE;
+// if "is correction clockwise?" button is checked it is clockwise
+rq._ivalue = IsClockWise->value() != 0? 1:0; 
+
+if(SendCommand(&rq) != REPLY_OK){
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  LOG_ERROR << "DeRotatorUI::IsClockWise: SendCommand() failed";
+  return;
+}}
+            xywh {0 0 31 20} type Toggle divider
+          }
+          MenuItem SetHardwareWLAN {
+            label {Setup hardware WLAN ...}
+            callback {HardwareWLANPopup->position(mainWindow->x_root()+5, 
+                            mainWindow->y_root()+200);
+
+HardwareWLANPopup->show();}
+            xywh {0 0 31 20} divider
+          }
+          MenuItem SaveHardwareSetup {
+            label {Save hardware setup to EEPROM}
+            callback {using namespace std;
+
+RequestPacket rq;
+rq._command = SETUP_SAVE_SETTINGS;
+
+int reply;
+if((reply = SendCommand(&rq))!= REPLY_OK){
+  // throw string("Reply is not ok");
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  LOG_ERROR << "SaveHardwareSetup(): SendCommand() reply is not ok";
+  LOG_ERROR << "Got reply = " << reply;
+}}
+            xywh {0 0 31 20}
+          }
+          MenuItem LoadHardwareSetup {
+            label {Load hardware setup from EEPROM}
+            callback {using namespace std;
+
+RequestPacket rq;
+rq._command = SETUP_LOAD_SETTINGS;
+
+int reply;
+if((reply = SendCommand(&rq))!= REPLY_OK){
+  // throw string("Reply is not ok");
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  LOG_ERROR << "SaveHardwareSetup(): SendCommand() reply is not ok";
+  LOG_ERROR << "Got reply = " << reply;
+}}
+            xywh {0 0 31 20}
+          }
+          MenuItem LoadDefaultHardwareSetup {
+            label {Load default hardware settings}
+            callback {using namespace std;
+
+RequestPacket rq;
+rq._command = SETUP_DEF_SETTINGS;
+
+int reply;
+if((reply = SendCommand(&rq))!= REPLY_OK){
+  // throw string("Reply is not ok");
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;      
+  LOG_ERROR << "SaveHardwareSetup(): SendCommand() reply is not ok";
+  LOG_ERROR << "Got reply = " << reply;
+}}
+            xywh {0 0 31 20}
+          }
+        }
+        Submenu {} {
+          label {&Help} open
+          xywh {50 0 62 20}
+          code0 {\#ifdef __APPLE__}
+          code1 {\#include <CoreFoundation/CFURL.h>}
+          code2 {\#include <CoreFoundation/CFBUNDLE.h>}
+          code3 {\#endif}
+        } {
+          MenuItem IntroducingFieldDeRotator {
+            label {Introducing the Field DeRotator ...}
+            callback {_introduction->load((_help_dir + 
+"introduction/introduction.html").c_str());
+_introduction->show();}
+            xywh {0 0 31 20}
+          }
+          MenuItem UserInterfaceHelp {
+            label {User Interface Help ...}
+            callback {_interface_help->load((_help_dir+
+  "help_interface/help_interface.html").c_str());
+_interface_help->show();}
+            xywh {0 0 31 20}
+            code0 {\#include <FL/Fl_Help_Dialog.h>}
+          }
+          MenuItem ControllerHelp {
+            label {Controller help ...}
+            callback {_controller_help->load((_help_dir+
+"help_controller/help_controller.html").c_str());
+_controller_help->show();}
+            xywh {0 0 31 20} divider
+          }
+          MenuItem About {
+            label {About ...}
+            callback {using namespace std;
+
+Version->position(mainWindow->x_root()+70, mainWindow->y_root()+200);
+char buf[128];
+sprintf(buf, "Field DeRotator\\n\\
+Copyright (C) 2015 C.Y. Tan\\n\\
+Released under GPL v3\\n\\
+Version %s", PROJECT_VERSION);
+VersionLabel->copy_label(buf);
+Version->show();}
+            xywh {0 0 31 20}
+            code0 {\#include "version.hpp"}
+          }
+        }
+        MenuItem SerialStatus {
+          label serial
+          callback {if(_serial_client == NULL){
+  SerialDevPopup->position(mainWindow->x_root()+50, 
+                           mainWindow->y_root()+200);
+  SerialDevPopup->show();
+}
+else {
+  // close the serial port
+  delete _serial_client;
+  _serial_client = NULL;
+  // turn off button
+  SerialStatus->clear();
+  MenuBar->redraw(); // update the serial radio button
+}}
+          xywh {0 0 31 20} type Radio
+        }
+        MenuItem WifiStatus {
+          label wifi
+          callback {if(_tcp_client == NULL){
+  WifiIPPopup->position(mainWindow->x_root()+50, 
+                      mainWindow->y_root()+200);
+
+  WifiIPPopup->show();
+}
+else {
+  // close the tcp port
+  delete _tcp_client;
+  _tcp_client = NULL;
+  WifiStatus->clear();
+  MenuBar->redraw(); // update the wifi radio button
+}}
+          xywh {0 0 31 20} type Radio
+        }
+      }
+      Fl_Group Graphics {
+        label Graphics open
+        xywh {5 104 385 271} box ENGRAVED_FRAME labeltype NO_LABEL
+      } {
+        Fl_Box derotator_graphics {
+          label GraphicsBox
+          xywh {5 107 385 268}
+          code0 {\#include "DeRotatorGraphics.hpp"}
+          class DeRotatorGraphics
+        }
+      }
+    }
+    Fl_Window WifiIPPopup {
+      label {Wifi IP Address} open
+      xywh {466 478 300 84} type Double hide modal
+    } {
+      Fl_Input IPAddress {
+        label {IP address: }
+        xywh {90 16 200 24}
+      }
+      Fl_Button {} {
+        label OK
+        callback {using namespace std;
+
+if(_tcp_client == NULL){
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;    
+  LOG_INFO << "address = " << IPAddress->value();
+  _tcp_client = new TCPClient(IPAddress->value(), 5001);
+   
+  LOG_INFO << "WIFI Connected!";
+  // get the current hardware status of the derotator
+  LOG_INFO << "querying hardware";
+  QueryHardware->do_callback(o); 
+  
+  // set the wifi toggle button
+  WifiStatus->set();
+  // unset the serial radio button
+  SerialStatus->clear();
+   
+  // disconnect Wifi if connected and untoggle the wifi button
+  if(_serial_client){
+    delete _serial_client;
+    _serial_client = NULL;
+    SerialStatus->clear();
+  }
+  
+  MenuBar->redraw(); // update radio button status
+
+}
+
+WifiIPPopup->hide();}
+        xywh {10 50 63 20}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {WifiIPPopup->hide();
+
+if(_tcp_client == NULL){
+ // turn off button
+  WifiStatus->clear();
+  MenuBar->redraw(); // update the serial radio button
+}}
+        xywh {80 50 63 20}
+      }
+    }
+    Fl_Window SerialDevPopup {
+      label {Serial Device Name} open
+      xywh {466 346 300 84} type Double hide modal
+    } {
+      Fl_Input SerialDevice {
+        label {Serial device: }
+        xywh {100 16 190 24}
+      }
+      Fl_Button {} {
+        label OK
+        callback {using namespace std;
+
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;
+ 
+if(_serial_client == NULL){
+  _serial_client = new SerialClient();
+  if(_serial_client->Connect(SerialDevice->value()) != 0){
+    LOG_ERROR << "Failed to connect to serial port";
+    return; 
+  };
+  
+  // unset the wifi radio button
+  WifiStatus->clear();
+  // set the serial radio button
+  SerialStatus->set();
+  
+ \#ifdef AAAAA
+   // get the current hardware status of the derotator
+  QueryHardware->do_callback(o);  
+\#endif
+  
+  // disconnect Wifi if connected and untoggle the wifi button
+  if(_tcp_client){
+    delete _tcp_client;
+    _tcp_client = NULL;
+    WifiStatus->clear();
+  }
+  
+  MenuBar->redraw(); //update the rado buttons
+  
+ LOG_INFO << "Serial Connected!";
+}
+
+SerialDevPopup->hide();}
+        xywh {10 50 63 20}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {SerialDevPopup->hide();
+
+if(_serial_client == NULL){
+ // turn off button
+  SerialStatus->clear();
+  MenuBar->redraw(); // update the serial radio button
+}}
+        xywh {80 50 63 20}
+      }
+    }
+    Fl_Window HardwareWLANPopup {
+      label {Hardware WLAN setup} open
+      xywh {449 52 390 172} type Double hide
+      code0 {o->position(4,200);}
+    } {
+      Fl_Box {} {
+        label {Setup can only be sent via Serial line}
+        xywh {180 10 30 16} labelcolor 1
+      }
+      Fl_Input WLANSSID {
+        label {SSID:}
+        xywh {80 35 230 24}
+      }
+      Fl_Input WLANPassword {
+        label {Password:}
+        xywh {80 60 230 24}
+      }
+      Fl_Choice WLANSecurity {
+        label {Security:} open
+        xywh {80 85 230 24} down_box BORDER_BOX
+      } {
+        MenuItem {} {
+          label Unsecure
+          xywh {0 0 31 20}
+        }
+        MenuItem {} {
+          label WEP
+          xywh {0 0 31 20}
+        }
+        MenuItem {} {
+          label WPA
+          xywh {0 0 31 20}
+        }
+        MenuItem {} {
+          label WPA2
+          xywh {0 0 31 20}
+        }
+      }
+      Fl_Button {} {
+        label {Send via Serial}
+        callback {using namespace std;
+
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;        	  
+ LOG_INFO << "WLAN ssid = " << WLANSSID->value();
+ LOG_INFO << "WLAN password = " << WLANPassword->value();
+ LOG_INFO << "WLAN security = " << WLANSecurity->value();
+
+RequestPacket rq;
+
+rq._command = CMD_SET_WLAN_SSID;
+strcpy(rq._buf, WLANSSID->value());
+rq._buf[strlen(WLANSSID->value())] = '\\0';
+
+if(SendCommand(&rq) != REPLY_OK){
+  LOG_INFO << "DeRotatorUI::Send via serial: SendCommand(): "
+	   << " cannot send WLANSSID "
+	   <<  WLANSSID->value();
+  return;
+}
+
+rq._command = CMD_SET_WLAN_PASS;
+strcpy(rq._buf, WLANPassword->value());
+rq._buf[strlen(WLANPassword->value())] = '\\0';
+
+if(SendCommand(&rq) != REPLY_OK){
+  LOG_INFO << "DeRotatorUI::Send via serial: SendCommand(): "
+	   << " cannot send WLAN password";
+  return;
+}
+
+rq._command = CMD_SET_WLAN_SECURITY;
+rq._ivalue = WLANSecurity->value();
+if(SendCommand(&rq) != REPLY_OK){
+  LOG_INFO << "DeRotatorUI::Send via serial: SendCommand(): "
+	   << " cannot send WLAN security = "
+	   << WLANSecurity->value();
+  return;
+}
+
+
+HardwareWLANPopup->hide();}
+        xywh {95 120 120 25}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {HardwareWLANPopup->hide();}
+        xywh {220 120 64 25}
+      }
+    }
+    Fl_Window Version {
+      label Version open
+      xywh {33 49 255 158} type Double hide modal
+    } {
+      Fl_Box VersionLabel {
+        label {DeRotator
+by
+ C.Y. Tan
+Version 1.00}
+        xywh {25 16 204 126}
+      }
+    }
+    Fl_Window ConnectWithPopup {
+      label {Connect Window} open
+      xywh {570 169 226 133} type Double hide
+      code0 {o->position(80, 200);}
+    } {
+      Fl_Group ConnectGroup {open
+        xywh {25 25 170 60}
+      } {
+        Fl_Round_Button SerialPortSelected {
+          label {Serial port}
+          xywh {25 25 63 15} type Radio down_box ROUND_DOWN_BOX
+        }
+        Fl_Round_Button WifiSelected {
+          label Wifi
+          xywh {25 40 63 15} type Radio down_box ROUND_DOWN_BOX
+        }
+        Fl_Round_Button NoneSelected {
+          label {None (for debugging)}
+          xywh {25 55 63 15} type Radio down_box ROUND_DOWN_BOX
+          code0 {o->setonly();}
+        }
+      }
+      Fl_Button {} {
+        label OK
+        callback {ConnectWithPopup->hide();
+//only one of the following can be active because they
+// are radio buttons from the same group
+if(SerialPortSelected->value()){
+  SerialStatus->set();
+  WifiStatus->clear();
+  SerialStatus->do_callback(o);
+  return;
+}
+
+if(WifiSelected->value()){
+  SerialStatus->clear();
+  WifiStatus->set();
+  WifiStatus->do_callback(o);  
+  return;
+}}
+        xywh {81 95 63 20}
+      }
+    }
+    Fl_Window SetHallHomePopup {
+      label {Hall angle} open
+      xywh {498 355 300 84} type Double hide modal
+    } {
+      Fl_Input HallAngleInput {
+        label {Hall angle w.r.t. vertical (deg) : }
+        callback {derotator_graphics->SetHallAngle(atof(HallAngleInput->value()));
+
+SetHallHomePopup->hide();
+derotator_graphics->redraw();}
+        xywh {205 17 55 23} type Float when 8
+      }
+      Fl_Button {} {
+        label OK
+        callback {derotator_graphics->SetHallAngle(atof(HallAngleInput->value()));
+
+SetHallHomePopup->hide();
+derotator_graphics->redraw();}
+        xywh {10 50 63 20}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {SetHallHomePopup->hide();}
+        xywh {80 50 63 20}
+      }
+    }
+    code {// initialization code
+_serial_client = NULL;
+_tcp_client = NULL;
+
+/*
+  For some stupid reason, if I initialize _*_help in its extra code, 
+  the OpenGL graphcs doesn't show up.
+  If I do it here, everything is ok. So I'm doing it here ...
+*/
+
+_introduction = new Fl_Help_Dialog;
+_interface_help = new Fl_Help_Dialog;
+_controller_help = new Fl_Help_Dialog;
+
+/*
+  Set up help directory depending on whether the help directory is found
+*/
+using namespace boost::filesystem;
+path p("help");
+if(exists(p)){
+  _help_dir = "help/";
+}
+else {
+// check if this is a Mac app bundle
+\#ifdef __APPLE__
+  char help_str[] = "help";
+  unsigned short uhelp_str[64];
+  for(int i=0; i<strlen(help_str); i++){
+    uhelp_str[i] = help_str[i];
+  }
+  
+  CFStringRef s = CFStringCreateWithCharacters(NULL, uhelp_str, strlen(help_str));
+  CFURLRef appUrlRef;
+  appUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), s, NULL, NULL);
+
+  CFStringRef filePathRef = CFURLCopyPath(appUrlRef);
+  const char* filePath = CFStringGetCStringPtr(filePathRef, kCFStringEncodingUTF8);
+
+  path p1(filePath);
+  if(exists(p1)){
+    _help_dir = filePath;
+    CFRelease(filePathRef);
+    CFRelease(appUrlRef);
+  }
+  else {
+     // still set _help_dir to "help" even if it doesn't exist for now
+    _help_dir = "help/";
+    
+    CFRelease(filePathRef);
+    CFRelease(appUrlRef);	
+  }
+      
+\#endif
+}
+
+
+/*
+   _message_buffer must be initialized in Messages extra code because
+   Messages buffer has to be initialized when Messages is created.
+   Putting _message_buffer creation here causes a segmentaion fault.
+*/
+
+// configuration object
+_derotator_config = new DeRotatorConfig(this);
+
+// read in global config on start up
+_derotator_config->Load();} {}
+  }
+  Function {show(int argc, char** argv)} {open
+  } {
+    code {mainWindow->show(argc, argv);
+
+//mainWindow->do_callback();
+ConnectWithPopup->position(mainWindow->x_root()+80, mainWindow->y_root()+200);
+ConnectWithPopup->show();} {}
+  }
+  Function {show()} {open
+  } {
+    code {mainWindow->show();
+//mainWindow->do_callback();
+ConnectWithPopup->position(mainWindow->x_root()+80, mainWindow->y_root()+200);
+ConnectWithPopup->show();} {}
+  }
+  Function {timer_cb(void* data)} {open return_type {static void}
+  } {
+    code {// get the (alt, az, accumulated angle)
+using namespace std;
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;   
+
+DeRotatorUI* dr = (DeRotatorUI*)data;
+
+RequestPacket rq;
+rq._command = CMD_GET_ALTAZ_ZETA;
+
+ReplyPacket rp;
+
+if(dr->SendCommand(&rq, &rp) == REPLY_OK){
+\#ifdef AAAAA
+  LOG_TRACE << "alt = " << rp._fvalue[0] << " "
+            << "az = " << rp._fvalue[1] << " "
+            << "zeta = " << rp._fvalue[2] << " "
+            << "angle (FA) = " << HA2FA(rp._fvalue[3]);
+\#endif
+  double home_angle = dr->derotator_graphics->GetHomeAngle();
+  
+  dr->derotator_graphics->ZAngle(rp._fvalue[2]);
+  dr->derotator_graphics->ZOutlineAngle(HA2FA(rp._fvalue[3]) + home_angle);
+  dr->derotator_graphics->ZCameraAngle(HA2FA(rp._fvalue[3]) + home_angle);
+  dr->derotator_graphics->redraw();
+ 
+  char buf[32];
+  sprintf(buf, "%4.2f", HA2FA(rp._fvalue[3]));
+  dr->deg->value(buf);
+  
+  sprintf(buf, "%4d", static_cast<int>(HA2FS(rp._fvalue[3])));
+  dr->steps->value(buf);
+
+}
+else {       
+  LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand() failed";
+  return;
+}
+
+      
+Fl::repeat_timeout(REPEAT_TIME, timer_cb, data);} {}
+  }
+  Function {timer_cb1(void* data)} {open return_type {static void}
+  } {
+    code {// get the angle of the derotator w.r.t. user home
+using namespace std;
+
+DeRotatorUI* dr = (DeRotatorUI*)data;
+
+RequestPacket rq;
+rq._command = CMD_GET_THETA;
+
+ReplyPacket rp;
+
+if(dr->SendCommand(&rq, &rp) == REPLY_OK){
+\#ifdef AAAAAA
+  cerr << "goto home: theta (FA) = " << HA2FA(rp._fvalue[0]) << "\\n";
+\#endif 
+  double home_angle = dr->derotator_graphics->GetHomeAngle();
+  double angle = HA2FA(rp._fvalue[0]) + home_angle; // returned angle already is w.r.t. home, so add it to get absolute angle
+  dr->derotator_graphics->ZOutlineAngle(angle);
+  dr->derotator_graphics->ZCameraAngle(angle);
+  dr->derotator_graphics->redraw();
+   
+  char buf[32];
+  sprintf(buf, "%4.2f", HA2FA(rp._fvalue[0]));
+  dr->deg->value(buf);
+  
+  sprintf(buf, "%4d", static_cast<int>(HA2FS(rp._fvalue[0])));
+  dr->steps->value(buf);
+
+}
+else {
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;          
+  LOG_ERROR << "DeRotatorUI::timer_cb1(): SendCommand() failed!";
+  return;
+}
+
+if(fabs(rp._fvalue[0]) > 0){      
+  Fl::repeat_timeout(REPEAT_TIME, timer_cb1, data);
+}
+else {
+  // and reactivate the buttons that were greyed out
+  dr->Send->activate();
+  dr->SetHome->activate();
+  dr->SetCWLimit->activate();
+  dr->SetCCWLimit->activate();
+  dr->Start->activate();
+ 
+  Fl::remove_timeout(timer_cb1, data);
+}} {}
+  }
+  Function {timer_cb2(void* data)} {open return_type {static void}
+  } {
+    code {// get the angle of the derotator w.r.t. user home and stop when it is equal to the user wanted angle
+using namespace std;
+
+DeRotatorUI* dr = (DeRotatorUI*)data;
+
+RequestPacket rq;
+rq._command = CMD_GET_THETA;
+
+
+double home_angle = dr->derotator_graphics->GetHomeAngle();
+
+ReplyPacket rp;
+
+if(dr->SendCommand(&rq, &rp) == REPLY_OK){
+\#ifdef AAAAAA
+  cerr << "got angle: theta = " << HA2FA(rp._fvalue[0]) << " ";
+  cerr << dr->derotator_graphics->ZOutlineAngle() << "\\n";
+\#endif  
+  double angle = HA2FA(rp._fvalue[0]) + home_angle; // convert to absolute angle
+  
+  dr->derotator_graphics->ZCameraAngle(angle);
+  dr->derotator_graphics->redraw();
+ 
+  char buf[32];
+  sprintf(buf, "%4.2f", HA2FA(rp._fvalue[0]));
+  dr->deg->value(buf);
+  
+  sprintf(buf, "%4d", static_cast<int>(HA2FS(rp._fvalue[0])));
+  dr->steps->value(buf);
+
+}
+else {
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;          
+  LOG_ERROR << "DeRotatorUI::timer_cb2(): SendCommand() failed!";
+  return;
+}
+
+// only continue the callback if we haven't reached the user angle
+double outline_angle = dr->derotator_graphics->ZOutlineAngle();
+const double EPS = MECHANICAL_STEPSIZE; // this is the angle size of each stepper step
+
+if(fabs(HA2FA(rp._fvalue[0])+home_angle - outline_angle) > EPS ){      
+  Fl::repeat_timeout(REPEAT_TIME, timer_cb2, data);
+}
+else{
+  Fl::remove_timeout(timer_cb2, data);
+  // and reactivate the buttons that were greyed out
+  dr->Start->activate();
+  dr->Home->activate();
+  dr->SetHome->activate();
+  dr->SetCWLimit->activate();
+  dr->SetCCWLimit->activate();
+}} {}
+  }
+  Function {SendCommand(RequestPacket* const rq)} {open return_type int
+  } {
+    code {// send the given command to the derotator
+using namespace std;
+
+if(_serial_client){
+  if(_serial_client->Send(rq) != 0){
+    throw string("Send request failed");
+  }
+}
+
+if(_tcp_client){
+  if(_tcp_client->Send(rq) != 0){
+    throw string("Send request failed");
+  }
+}
+
+ReplyPacket rp;
+if(_serial_client){
+  if(_serial_client->Receive(&rp) !=0){
+    throw string("Did not receive reply packet");
+  }
+}
+
+if(_tcp_client){
+  if(_tcp_client->Receive(&rp) !=0){
+    throw string("Did not receive reply packet");
+  }
+}
+
+
+if(rp._reply != REPLY_OK){
+  // throw string("Reply is not ok");
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;          
+  LOG_ERROR << "Reply is not ok";
+  LOG_ERROR << "Got reply = " << rp._reply;
+}
+
+return rp._reply;} {}
+  }
+  Function {SendCommand(RequestPacket* const rq, ReplyPacket* const rp)} {open return_type int
+  } {
+    code {// send the given command and receive the reply
+// from the derotator
+using namespace std;
+
+if(_serial_client){
+  if(_serial_client->Send(rq) != 0){
+    throw string("Send request failed");
+  }
+}
+
+if(_tcp_client){
+  if(_tcp_client->Send(rq) != 0){
+    throw string("Send request failed");
+  }
+}
+
+
+if(_serial_client){
+  if(_serial_client->Receive(rp) !=0){
+    throw string("Did not receive reply packet");
+  }
+}
+
+if(_tcp_client){
+  if(_tcp_client->Receive(rp) !=0){
+    throw string("Did not receive reply packet");
+  }
+}
+
+
+if(rp->_reply != REPLY_OK){
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;          
+  // throw string("Reply is not ok");
+  LOG_ERROR << "Reply is not ok";
+  LOG_ERROR << "Got reply = " << rp->_reply;
+}
+
+return rp->_reply;} {}
+  }
+}

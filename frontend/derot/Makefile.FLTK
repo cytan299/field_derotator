@@ -1,0 +1,50 @@
+#
+# Stuff every FLTK application might need
+#
+#    If you take this for use in your own project, be sure to change
+#    the 'FLTKCONFIG' setting to point to where it's installed
+#    on your system. Common examples:
+#
+#	FLTKCONFIG = /usr/local/bin/fltk-config
+#       FLTKCONFIG = /usr/local/src/fltk-1.3.x-svn/fltk-config
+#
+#    Set .SILENT in your Makefile if you want 'quieter' builds.
+#
+
+ifeq '$(OS)' "Windows_NT"
+EXEEXT = .exe
+endif
+
+#FLTKCONFIG   = ../fltk-1.3.3/fltk-config
+#FLTKCONFIG   = ../fltk-1.3.x-r10729/fltk-config
+FLTKCONFIG   = ../fltk-1.3.x-r10820/fltk-config
+CXX          = $(shell $(FLTKCONFIG) --cxx) -g
+CXXFLAGS     = $(shell $(FLTKCONFIG) --cxxflags) -g -Wall -I.
+LINKFLTK     = $(shell $(FLTKCONFIG) --ldstaticflags) -g
+LINKFLTK_GL  = $(shell $(FLTKCONFIG) --use-gl --ldstaticflags)
+LINKFLTK_IMG = $(shell $(FLTKCONFIG) --use-images --ldstaticflags)
+LINKFLTK_ALL = $(shell $(FLTKCONFIG) --use-images --use-gl --ldstaticflags)
+.SUFFIXES: .cpp .cxx .h .fl .o $(EXEEXT)
+
+#
+# Note:
+# 	git tag ???
+# must be run before the revision numbers etc. work
+#
+
+REVISION_COUNT:=$(shell git log --oneline | wc -l | sed 's/ //g')
+PROJECT_VERSION=$(shell git describe --tags --long --always)
+
+
+# HOW TO COMPILE
+.cxx.o:
+	@echo "*** Compile $<..."
+	$(shell echo "#ifndef PROJECT_VERSION" > version.hpp)
+	$(shell echo "#define PROJECT_VERSION \""$(PROJECT_VERSION)-$(REVISION_COUNT)"\"" >> version.hpp)
+	$(shell echo "#endif" >> version.hpp)
+	$(CXX) -I.. $(CXXFLAGS) -c $< -o $@
+
+.cpp.o:
+	@echo "*** Compile $<..."
+	$(CXX) -I.. $(CXXFLAGS) -c $< -o $@
+
