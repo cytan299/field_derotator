@@ -1,1 +1,20 @@
 # Bill of Materials
+
+I present the estimated cost for building *one* field derotator here
+to be $642. This is the lower bound for the cost of one such device
+because, in practise, it is not possible to just buy 1 screw :) or
+cost effective to build one part at
+[eMachineshop](http://www.emachineshop.com). Plus, I did not include
+tax or cost of shipping. I would imagine that the more people build
+the device, the closer the cost will get to $642.
+
+# Note
+
+One cost that I did not include was the modification of two gears used
+in this project. I had friends who were kind enough to use their lathe
+and mill to perform the modifications essentially for free. See the
+wiki for more information on what modifications were made.
+
+
+
+
