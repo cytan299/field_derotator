@@ -11,5 +11,11 @@ for the controller program.
   *derot.ino*. The README.md file contains more information about
   these libraries.
 
+## Copyright
+
+The software that is written by the author is copyright 2015 C.Y. Tan
+and released under GPLv3.
+
+
 
 

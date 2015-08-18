@@ -41,6 +41,10 @@ These files have to be unzipped and installed in
 on a Mac. For Linux or a PC, you will have to install it in the
 correct place that the Arduino compiler requires.
 
+## Copyright
+
+The software that is written by the author is copyright 2015 C.Y. Tan
+and released under GPLv3.
 
 
 
