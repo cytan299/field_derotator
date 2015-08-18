@@ -27,6 +27,12 @@ instead.
 
 ## Support
 
+All the software have been successfully compiled on Mac OS X 10.10.5
+(Yosemite).
+
+I don't do Windows or Linux so, I cannot answer questions for these
+two platforms.
+
 This is unsupported software and hardware. Build at your own peril! :)
 
 Have fun!

@@ -9,7 +9,7 @@ code has been successfully compiled using ARDUINO 1.6.4.
 for the controller program.
 * **lib** This contains the libraries which are required for compiling
   *derot.ino*. The README.md file contains more information about
-  *these libraries.
+  these libraries.
 
 
 
