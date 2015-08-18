@@ -25,6 +25,14 @@ I hope that this device will be useful for astrophotographers who find
 polar mounts a real pain in the rear to use, and prefer alt-az mounts
 instead.
 
+## IMPORTANT!
+
+Field derotation **cannot** work without an off-axis guider. If you
+don't plan on investing in an off-axis guider, don't bother building
+this device because field derotation will not work without this
+device. See *field_derotator_formula/field_derotator_formula.pdf* for
+the reason.
+
 ## Support
 
 All the software have been successfully compiled on Mac OS X 10.10.5
