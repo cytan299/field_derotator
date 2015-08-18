@@ -43,6 +43,9 @@ two platforms.
 
 This is unsupported software and hardware. Build at your own peril! :)
 
+You can submit questions or bug reports using the [issues](https://github.com/cytan299/field_derotator/issues) tab on
+the right (*not* the top!) and then click on **NEW**.
+
 Have fun!
 
 ## Directory structure
