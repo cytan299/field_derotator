@@ -1,7 +1,8 @@
 # Eagle files
 
 These are the eagle files that can be sent to pc board manufacturers to
-be made.
+be made. There is a free version of [eagle](http://cadsoftusa.com)
+that can be downloaded to view the designs.
 
 ## Directories
 
