@@ -73,7 +73,8 @@ copyright 2015 C.Y. Tan.
 All software is released under GPLv3
 
 All documentation is released under Creative Commons
-Attribution-ShareAlike 3.0 Unported License.
+Attribution-ShareAlike 3.0 Unported License or GNU Free
+Documentation License, Version 1.3
 
 All hardware is released under CERN Hardware Open License v1.2
 
