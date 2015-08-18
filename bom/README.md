@@ -5,8 +5,9 @@ to be $642. This is the lower bound for the cost of one such device
 because, in practise, it is not possible to just buy 1 screw :) or
 cost effective to build one part at
 [eMachineshop](http://www.emachineshop.com). Plus, I did not include
-tax or cost of shipping. I would imagine that the more people build
-the device, the closer the cost will get to $642.
+tax or cost of shipping. I would imagine that if people banded
+together build multiples of this device, the cost will cost will get
+closer to $642.
 
 # Note
 

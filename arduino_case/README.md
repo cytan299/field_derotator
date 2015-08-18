@@ -4,9 +4,9 @@ This is the case that I designed for the controller. This design is based on the
 
 The file *ponoko_upload.svg* file can be uploaded to [Ponoko](http://www.ponoko.com) for manufacture. The material that I used is
 
-Acrylic - Red TINT
-3.0 mm
-P2 - 384.0 mm long x 384.0 mm wide
+* Acrylic - Red TINT
+* 3.0 mm thick
+* P2 - 384.0 mm long x 384.0 mm wide
 
 ## Copyright
 
