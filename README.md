@@ -43,8 +43,9 @@ two platforms.
 
 This is unsupported software and hardware. Build at your own peril! :)
 
-You can submit questions or bug reports using the [issues](https://github.com/cytan299/field_derotator/issues) tab on
-the right (*not* the top!) and then click on **NEW**.
+You can submit questions or bug reports using the
+[issues](https://github.com/cytan299/field_derotator/issues) tab on
+the right and then click on **NEW**.
 
 Have fun!
 
@@ -52,7 +53,8 @@ Have fun!
 
 * **arduino** The C++ code for the arduino MEGA2560.
 * **arduino_case** The case design for the field derotator controller.
-* **bom** Bill of materials for 1 field derotator.
+* **bom** Bill of materials for 1 field derotator. I also show the
+  cost for building one.
 * **eagle** Eagle schematic and board files.
 * **emachineshop** eMachineshop files for the derotator aluminium
 shell.
