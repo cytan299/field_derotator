@@ -3,7 +3,7 @@
 This is the GUI frontend that allows the user to control the field
 derotator in the comfort of your nice warm house via WIFI. I have
 built this on Mac OS X 10.10.5. Since the GUI library that I am using,
-[fltk](http://www.fltk.org) is cross platform and supports Linux and
+[fltk](http://www.fltk.org), is cross platform and supports Linux and
 Windows, I believe that small changes are necessary for the GUI to
 compile on them.
 
