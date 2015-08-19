@@ -38,7 +38,7 @@ These files have to be unzipped and installed in
 
 *~/Documents/Arduino/libraries*
 
-on a Mac. For Linux or a PC, you will have to install it in the
+on a Mac. For Linux or Windows, you will have to install it in the
 correct place that the Arduino compiler requires.
 
 ## Copyright
