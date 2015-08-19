@@ -10,16 +10,16 @@ correct place that the Arduino compiler requires.
 
 ## Libraries
 
-* **BaseServer** the base class for SerialServer and TCPServer.
-* **DeRotator** the class  calculates the amount of derotation
+* **BaseServer** is the base class for SerialServer and TCPServer.
+* **DeRotator** is the class that calculates the amount of derotation
 given the initial alt-az position of the star
-* **SerialServer** the class that sets up serial port 0 to listen to
-the user commands.
-* **TCPServer** the class that sets up WIFI to listen to user
+* **SerialServer** is the derived class of *BaseServer*  that sets up
+serial port 0 to listen to the user commands.
+* **TCPServer** is the derived class of *BaseServer* that sets up WIFI to listen to user
 commands.
-* **Telescopes** the class that allows the user to communicate with
+* **Telescopes** is the class that allows the user to communicate with
 the LX200.
-* **UserIO** the class that prints out messages to the LCD and serial
+* **UserIO** is the class that prints out messages to the LCD and serial
 port and reads the push buttons.
 
 ### Libraries that are zip'ed
