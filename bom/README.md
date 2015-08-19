@@ -6,7 +6,7 @@ because, in practise, it is not possible to just buy 1 screw :) or is
 cost effective to build just one part at
 [eMachineshop](http://www.emachineshop.com). Plus, I did not include
 tax or cost of shipping. I would imagine that if people banded
-together build multiples of this device, the cost will cost will get
+together to build multiple copies of this device, the cost will get
 closer to $642.
 
 The bom.ods file is readable using [LibreOffice Calc](http://www.libreoffice.org).
