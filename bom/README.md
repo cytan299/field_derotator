@@ -9,12 +9,14 @@ tax or cost of shipping. I would imagine that if people banded
 together build multiples of this device, the cost will cost will get
 closer to $642.
 
+The bom.ods file is readable using [LibreOffice Calc](http://www.libreoffice.org).
+
 # Note
 
 One cost that I did not include was the modification of two gears used
 in this project. I had friends who were kind enough to use their lathe
 and mill to perform the modifications essentially for free. See
-[assembly instruction](../howto/assembly.pdf) for more information on
+[assembly instructions](../howto/assembly.pdf) for more information on
 what modifications were made.
 
 
