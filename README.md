@@ -29,9 +29,9 @@ instead.
 
 Field derotation **cannot** work without an off-axis guider. If you
 don't plan on investing in an off-axis guider, don't bother building
-this device because field derotation will not work without it.
-See *field_derotator_formula/field_derotator_formula.pdf* for
-the explanation.
+this device because field derotation will not work without it.  See
+[field_derotator_formula.pdf](field_derotator_formula/field_derotator_formula.pdf)
+for the explanation.
 
 ## Support
 
