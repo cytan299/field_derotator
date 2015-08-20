@@ -14637,8 +14637,6 @@ Source: www.kingbright.com</description>
 <sheets>
 <sheet>
 <plain>
-<text x="58.42" y="58.42" size="1.778" layer="91">2202677</text>
-<text x="198.12" y="154.94" size="1.778" layer="91">31114</text>
 <text x="7.62" y="12.7" size="1.778" layer="97">Copyright 2015 C.Y. Tan
 
  This documentation describes Open Hardware and is licensed under the
