@@ -2,6 +2,8 @@
 
 by C.Y. Tan 2015
 
+![Field DeRotator](https://github.com/cytan299/field_derotator/blob/master/frontend/derot/help/introduction/pics/controller_derotator.png)
+
 Most telescopes used for astrophotography are equatorially
 mounted. However, the more popular computer controlled telescopes are
 alt-az mounted and are usually deemed unsuitable for
