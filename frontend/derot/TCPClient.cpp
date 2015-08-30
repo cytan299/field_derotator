@@ -32,6 +32,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <iostream>
 
@@ -91,6 +92,10 @@ TCPClient::TCPClient(const char* serverIP, const int portNumber)
     throw string("TCPClient::TCPClient: Error opening socket");
   }
 
+  /* set socket to non blocking */
+  long arg = fcntl(_sFd, F_GETFL, NULL);
+  arg |= O_NONBLOCK;
+  fcntl(_sFd, F_SETFL, arg);
 
   /* build server socket address */
 
@@ -100,12 +105,42 @@ TCPClient::TCPClient(const char* serverIP, const int portNumber)
   serverAddr.sin_addr.s_addr = inet_addr(_serverIP);
   serverAddr.sin_port = htons(_portNumber);
 
-  /* connect to server */
 
-  if(connect(_sFd, (struct sockaddr *)&serverAddr, sockAddrSize) == -1){
-    throw string("Cannot connect to server");
-    close(_sFd);
+  /* connect to server */
+  if(connect(_sFd, (struct sockaddr *)&serverAddr, sockAddrSize) < 0){
+    if(errno == EINPROGRESS){
+      // check whether socket is ready
+      struct timeval timeout;
+      timeout.tv_sec = 10;
+      timeout.tv_usec = 0;
+      // set up to check for timeout
+      fd_set wr;
+      FD_ZERO(&wr);
+      FD_SET(_sFd, &wr);
+
+      if(select(_sFd+1, NULL, &wr, NULL, &timeout) > 0){
+	  socklen_t slen = sizeof(int);
+	  int valopt;
+	  getsockopt(_sFd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &slen);
+	  if(valopt){
+	    throw string("TCPClient(): error in connection");
+	  }
+      }
+      else {
+	throw string("TCPClient(): timeout reached. Cannot connect to server");
+      }
+    }
+    else {
+      throw string("TCPClient(): Cannot connect to server");
+      close(_sFd);
+    }
   }
+
+  // reset to blocking mode
+  arg = fcntl(_sFd, F_GETFL, NULL);
+  arg &= (~O_NONBLOCK);
+  fcntl(_sFd, F_SETFL, arg);
+
 }
 catch(const string& message)
 {

@@ -1051,7 +1051,14 @@ if(_tcp_client == NULL){
   using namespace logging::trivial;
   src::severity_logger< severity_level > lg;    
   LOG_INFO << "address = " << IPAddress->value();
-  _tcp_client = new TCPClient(IPAddress->value(), 5001);
+  try{
+    _tcp_client = new TCPClient(IPAddress->value(), 5001);
+  }
+  catch(string& s){
+    LOG_ERROR << "Cannot connect to WIFI " << s << "\n";
+    WifiIPPopup->hide();
+    return;
+  }
    
   LOG_INFO << "WIFI Connected!";
   // get the current hardware status of the derotator
