@@ -46,6 +46,12 @@ SEE ALSO
 #define REPLY_INT16	1
 #define REPLY_FLOAT	2
 
+/*
+  Derotator continue status is sent back in ReplyPacket::_reply
+*/
+
+#define REPLY_DEROTATOR_STEPSIZE_ERR	-1
+#define REPLY_DEROTATOR_LIMITS_REACHED	-2
 
 
 struct ReplyPacket

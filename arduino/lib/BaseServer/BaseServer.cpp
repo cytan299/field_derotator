@@ -1,4 +1,4 @@
-/*$Id: BaseServer.cpp | Sat Aug 1 23:56:42 2015 -0500 | cytan  $*/
+/*$Id$*/
 /*
     derot is the controller code for the Arduino MEGA2560
     Copyright (C) 2015  C.Y. Tan
@@ -62,7 +62,7 @@ AUTHOR
 SEE ALSO
 
 REVISION
-	$Revision: ed818538e6e43bcc3dddbdebbd202b9f59b809f5 $
+	$Revision$
 
 **********************************************************************/
 
@@ -100,6 +100,9 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
   // do derotator control commands
   if((rq->_command >= 10) && (rq->_command <20)){ 
     main_menu.activeNode=&control_menu;
+    // always return OK for these commands
+    rp->_reply = REPLY_OK;
+    
     switch(rq->_command){
       case DEROTATOR_START:
 	_userio->SetInitDeRotatorFlag();
@@ -121,6 +124,10 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
   // do setup  commands
   if((rq->_command >= 20) && (rq->_command <30)){ 
     main_menu.activeNode=&setup_menu;
+    
+    // always return OK for these commands
+    rp->_reply = REPLY_OK;
+    
     switch(rq->_command){
       case SETUP_SET_USER_HOME:
 	_derotator->SetUserHome(static_cast<long>(rq->_fvalue[0]/MECHANICAL_STEPSIZE)); // steps
@@ -175,21 +182,26 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
 
   // do other commands
   if(rq->_command >= 100){
+
+    // rp->_reply not necessarily ok with these commands
     switch(rq->_command){
       case CMD_GET_ALTAZ_ZETA:
 	double alt, az;
 	_derotator->GetAltAz(&alt, &az);
+	rp->_reply = _userio->_derotator_continue_status;
 	rp->_fvalue[0] = alt;
 	rp->_fvalue[1] = az;
 	rp->_fvalue[2] = _derotator->GetAccumulatedAngle();
 	rp->_fvalue[3] = _derotator->GetAngle();
       break;
       case CMD_GET_THETA:
+	rp->_reply = REPLY_OK;	
 	double theta;
 	theta = _derotator->GetAngle();
 	rp->_fvalue[0] = theta;
       break;
       case CMD_GOTO_THETA:
+	rp->_reply = REPLY_OK;		
 	theta = rq->_fvalue[0];
 	_derotator->StartGoingToUserAngle(theta);
 	_userio->_is_goto_user_angle = true;
@@ -214,14 +226,17 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
       break;
 
       case CMD_GET_USER_HOME_POS:
+	rp->_reply = REPLY_OK;		
 	rp->_fvalue[0] = _derotator->GetUserHome();
       break;
 
       case CMD_GET_MAX_CW_POS:
+	rp->_reply = REPLY_OK;		
         rp->_fvalue[0] = _derotator->GetMaxCW();
       break;
 
       case CMD_GET_MAX_CCW_POS:
+	rp->_reply = REPLY_OK;		
         rp->_fvalue[0] = _derotator->GetMaxCCW();
       break;
 

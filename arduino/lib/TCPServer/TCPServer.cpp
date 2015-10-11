@@ -188,7 +188,6 @@ int TCPServer::ServiceLoop()
 
       if(ServiceRequests(&rq, &rp, &sp) == 0){
 	if(rq._command != CMD_QUERY_STATE){
-	  rp._reply = REPLY_OK;
 
 	  char* packet_ptr = (char*)&rp;
 	  char* packet_end = packet_ptr + sizeof(ReplyPacket);

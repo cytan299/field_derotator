@@ -88,7 +88,6 @@ int SerialServer::ServiceLoop()
 
     if(ServiceRequests(&rq, &rp, &sp) == 0){
       if(rq._command != CMD_QUERY_STATE){
-	rp._reply = REPLY_OK;
 
 	if(Serial.write((char*)(&rp),
 			sizeof(ReplyPacket)) != sizeof(ReplyPacket)){

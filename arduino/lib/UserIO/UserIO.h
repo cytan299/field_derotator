@@ -261,6 +261,11 @@ public:
 
   static bool _is_goto_user_angle;
 
+public:
+  // store what the status of derotation is
+  // Its value is set in ServiceDeRotator()
+  static int _derotator_continue_status;
+
 private:
   static Adafruit_RGBLCDShield _lcd;
 

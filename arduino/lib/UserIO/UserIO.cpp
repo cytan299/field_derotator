@@ -217,6 +217,11 @@ MENU(main_menu,"Main menu",
 bool UserIO::_is_goto_user_angle = false;
 
 /**********************************************************************
+	Define the derotator continue status
+ **********************************************************************/
+int UserIO::_derotator_continue_status = REPLY_OK;
+
+/**********************************************************************
 	Defines for the static variables of UserIO
  **********************************************************************/
 
@@ -458,7 +463,7 @@ int UserIO::ServiceDeRotator()
     double alt, az;
 
     if((status=_derotator->Continue()) == 1){
-
+      _derotator_continue_status = REPLY_OK;
       double angle = _derotator->GetAccumulatedAngle();
 
       _derotator->GetAltAz(&alt, &az);
@@ -482,12 +487,14 @@ int UserIO::ServiceDeRotator()
     else {
       // time step is too small, so we have to break
       if(status == -1){
+        _derotator_continue_status = REPLY_DEROTATOR_STEPSIZE_ERR;	
 	double angle = _derotator->GetAccumulatedAngle();
 
 	_derotator->GetAltAz(&alt, &az);
 	PrintAltAzRot(alt, az, angle);
 
-	Serial.println("+++++++++++++");
+	Serial.println("++ step size too small!!!");
+	Serial.println(_derotator_continue_status, DEC);
 	Serial.println(alt,9);
 	Serial.println(az,9);
         Serial.println(angle,9);
@@ -500,7 +507,8 @@ int UserIO::ServiceDeRotator()
       }
       
       if(status == -2){
-
+        _derotator_continue_status = REPLY_DEROTATOR_LIMITS_REACHED;
+	
 	Serial.println("!!!!!!!!!!!!!");
 	_derotator->GetAltAz(&alt, &az);	
 	Serial.println(alt,9);
@@ -711,8 +719,11 @@ void UserIO::SetStopDeRotatorFlag()
   if(_userio->_is_stop_derotator == false){
     _userio->ForceLCDPrintMenu(control_menu, true);    
   }
-
+  
   _userio->_is_stop_derotator = true;
+
+  // and reset the derotator continue status to ok
+  _userio->_derotator_continue_status = REPLY_OK;
 }
 
 void UserIO::SetGotoHallHomeFlag()
