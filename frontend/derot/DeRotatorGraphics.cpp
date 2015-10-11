@@ -131,6 +131,7 @@ DeRotatorGraphics::DeRotatorGraphics(int x,int y,int w,int h,const char *l)
   _z_home_angle = 0.0;
   _z_max_cw_angle = -90;
   _z_max_ccw_angle = 90;
+  _z_display_camera_angle = 90;
 
   _drawing_mode = CAMERA_OUTLINE_MODE;
   _z_tmp_home_angle = 0;
@@ -184,6 +185,17 @@ double DeRotatorGraphics::GetHallAngle() const
 {
   return _z_hall_angle;
 }
+
+void DeRotatorGraphics::SetDisplayCameraAngle(const double angle)
+{
+  _z_display_camera_angle = angle;
+}
+
+double DeRotatorGraphics::GetDisplayCameraAngle() const
+{
+  return _z_display_camera_angle;
+}
+
 
 void DeRotatorGraphics::SetHomeAngle(const double angle)
 {
@@ -310,7 +322,7 @@ void DeRotatorGraphics::draw()
 
   glPushMatrix();
     glBindTexture(GL_TEXTURE_2D, _camera_texture_id);
-    glRotatef((GLfloat)(_z_camera_angle + _z_hall_angle) ,0,0,1.0);    
+    glRotatef((GLfloat)(_z_camera_angle + _z_hall_angle + _z_display_camera_angle) ,0,0,1.0);    
     glBegin(GL_QUADS);
     {
       // length = 4.96, breadth =3.95	
@@ -326,7 +338,7 @@ void DeRotatorGraphics::draw()
 
   glPushMatrix();
     glBindTexture(GL_TEXTURE_2D, _camera_outline_texture_id);
-    glRotatef((GLfloat)(_z_outline_angle + _z_hall_angle),0,0,1.0);    
+    glRotatef((GLfloat)(_z_outline_angle + _z_hall_angle + _z_display_camera_angle),0,0,1.0);    
     glBegin(GL_QUADS);
     {
       // length = 4.96, breadth =3.95	
@@ -345,13 +357,13 @@ void DeRotatorGraphics::draw()
     switch(_drawing_mode){
       case CAMERA_OUTLINE_MODE:
 	glBindTexture(GL_TEXTURE_2D, _home_arrow_texture_id);
-        glRotatef((GLfloat)(_z_home_angle + _z_hall_angle),0,0,1.0);
+        glRotatef((GLfloat)(_z_home_angle + _z_hall_angle + _z_display_camera_angle),0,0,1.0);
 
       break;
 
       case HOME_MODE:
 	glBindTexture(GL_TEXTURE_2D, _home_texture_id);
-        glRotatef((GLfloat)(_z_tmp_home_angle + _z_hall_angle),0,0,1.0);   	
+        glRotatef((GLfloat)(_z_tmp_home_angle + _z_hall_angle + _z_display_camera_angle),0,0,1.0);   	
       break;
 
       case CW_POS_MODE:

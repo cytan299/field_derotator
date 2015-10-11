@@ -107,6 +107,11 @@ int DeRotatorConfig::Load(const char* filename)
     _derotatorUI->IsClockWise->clear();      
   }
 
+  float fval;
+  _prefs->get("Display camera angle", fval, 0.0);
+  _derotatorUI->derotator_graphics->SetDisplayCameraAngle(fval);
+
+  
   _prefs->get("wlan_ssid", buf, "CYTECH", 255);
   _derotatorUI->WLANSSID->value(buf);
 
@@ -128,7 +133,7 @@ int DeRotatorConfig::Save(const char* filename)
   _prefs->set("IPAddress", _derotatorUI->IPAddress->value());
   _prefs->set("SerialDevice", _derotatorUI->SerialDevice->value());
   _prefs->set("is_correction_clockwise", _derotatorUI->IsClockWise->value() !=0?1:0);
-  
+  _prefs->set("Display camera angle", _derotatorUI->derotator_graphics->GetDisplayCameraAngle());
   _prefs->flush();
 
   return 0;

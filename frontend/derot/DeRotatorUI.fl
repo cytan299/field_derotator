@@ -838,6 +838,18 @@ HallAngleInput->value(buf);
 SetHallHomePopup->show();}
             xywh {0 0 31 20} divider
           }
+          MenuItem SetDisplayCameraAngle {
+            label {Set display camera angle ...}
+            callback {SetDisplayCameraAnglePopup->position(mainWindow->x_root()+50, 
+                           mainWindow->y_root()+200);
+                      
+char buf[32];
+sprintf(buf, "%4.2f", derotator_graphics->GetDisplayCameraAngle());
+DisplayCameraAngleInput->value(buf);
+                         
+SetDisplayCameraAnglePopup->show();}
+            xywh {0 0 31 20} divider
+          }
           MenuItem IsLimitsEnabled {
             label {Are limits enabled?}
             callback {// enable or disable the derotator limits 
@@ -1078,7 +1090,7 @@ if(_tcp_client == NULL){
 
 }
 
-WifiIPPopup->hide();} selected
+WifiIPPopup->hide();}
         xywh {10 50 63 20}
       }
       Fl_Button {} {
@@ -1323,6 +1335,32 @@ derotator_graphics->redraw();}
         xywh {80 50 63 20}
       }
     }
+    Fl_Window SetDisplayCameraAnglePopup {
+      label {Display camera angle} open
+      xywh {205 55 300 84} type Double hide
+    } {
+      Fl_Input DisplayCameraAngleInput {
+        label {Hall angle w.r.t. vertical (deg) : }
+        callback {derotator_graphics->SetDisplayCameraAngle(atof(DisplayCameraAngleInput->value()));
+
+SetDisplayCameraAnglePopup->hide();
+derotator_graphics->redraw();}
+        xywh {215 27 55 23} type Float when 8
+      }
+      Fl_Button {} {
+        label OK
+        callback {derotator_graphics->SetDisplayCameraAngle(atof(DisplayCameraAngleInput->value()));
+
+SetDisplayCameraAnglePopup->hide();
+derotator_graphics->redraw();}
+        xywh {20 60 63 20}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {SetDisplayCameraAnglePopup->hide();}
+        xywh {90 60 63 20}
+      }
+    }
     code {// initialization code
 _serial_client = NULL;
 _tcp_client = NULL;
@@ -1419,8 +1457,9 @@ RequestPacket rq;
 rq._command = CMD_GET_ALTAZ_ZETA;
 
 ReplyPacket rp;
+int status;
 
-if(dr->SendCommand(&rq, &rp) == REPLY_OK){
+if((status=dr->SendCommand(&rq, &rp)) == REPLY_OK){
 \#ifdef AAAAA
   LOG_TRACE << "alt = " << rp._fvalue[0] << " "
             << "az = " << rp._fvalue[1] << " "
@@ -1442,13 +1481,23 @@ if(dr->SendCommand(&rq, &rp) == REPLY_OK){
   dr->steps->value(buf);
 
 }
-else {       
+else {
+  switch(status){
+    case REPLY_DEROTATOR_STEPSIZE_ERR:
+      LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand(): step size too small";
+      return;
+    case REPLY_DEROTATOR_LIMITS_REACHED:
+      LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand(): limits reached";
+      return;
+    }
+           
   LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand() failed";
   return;
 }
 
       
-Fl::repeat_timeout(REPEAT_TIME, timer_cb, data);} {}
+Fl::repeat_timeout(REPEAT_TIME, timer_cb, data);} {selected
+    }
   }
   Function {timer_cb1(void* data)} {open return_type {static void}
   } {

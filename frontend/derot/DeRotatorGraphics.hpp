@@ -82,6 +82,12 @@ INTERFACE
 		angle		- to this angle in degrees
 	)
 
+	GetDisplayCameraAngle()	- get the display angle of the camera seen on the GUI.
+
+	SetDisplayCameraAngle(	- set the display angle of the camera seen on the GUI
+		angle		- to this angle in degrees
+	)
+
 	GetHallAngle()		- get the Hall sensor w.r.t. the vertical in degrees
 
 	SetHomeAngle(		- set the angle of the Home angle
@@ -232,6 +238,9 @@ public:
   void SetHallAngle(const double angle);
   double GetHallAngle() const;
 
+  void SetDisplayCameraAngle(const double angle);
+  double GetDisplayCameraAngle() const;
+  
   void SetHomeAngle(const double angle);
   double GetHomeAngle() const;
 
@@ -285,6 +294,9 @@ private:
   double _z_home_angle;
   double _z_max_cw_angle;
   double _z_max_ccw_angle;
+
+  // the user also sets how the camera and outlines are displayed
+  double _z_display_camera_angle;
 
   // user enables for disables the cw and ccw limits
   bool _is_limits_enabled;

@@ -166,6 +166,11 @@ private:
   inline void cb_SetHallHome_i(Fl_Menu_*, void*);
   static void cb_SetHallHome(Fl_Menu_*, void*);
 public:
+  static Fl_Menu_Item *SetDisplayCameraAngle;
+private:
+  inline void cb_SetDisplayCameraAngle_i(Fl_Menu_*, void*);
+  static void cb_SetDisplayCameraAngle(Fl_Menu_*, void*);
+public:
   static Fl_Menu_Item *IsLimitsEnabled;
 private:
   inline void cb_IsLimitsEnabled_i(Fl_Menu_*, void*);
@@ -275,6 +280,16 @@ private:
   static void cb_OK3(Fl_Button*, void*);
   inline void cb_Cancel3_i(Fl_Button*, void*);
   static void cb_Cancel3(Fl_Button*, void*);
+public:
+  Fl_Double_Window *SetDisplayCameraAnglePopup;
+  Fl_Float_Input *DisplayCameraAngleInput;
+private:
+  inline void cb_DisplayCameraAngleInput_i(Fl_Float_Input*, void*);
+  static void cb_DisplayCameraAngleInput(Fl_Float_Input*, void*);
+  inline void cb_OK4_i(Fl_Button*, void*);
+  static void cb_OK4(Fl_Button*, void*);
+  inline void cb_Cancel4_i(Fl_Button*, void*);
+  static void cb_Cancel4(Fl_Button*, void*);
 public:
   void show(int argc, char** argv);
   void show();

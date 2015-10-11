@@ -797,6 +797,20 @@ void DeRotatorUI::cb_SetHallHome(Fl_Menu_* o, void* v) {
   ((DeRotatorUI*)(o->parent()->user_data()))->cb_SetHallHome_i(o,v);
 }
 
+void DeRotatorUI::cb_SetDisplayCameraAngle_i(Fl_Menu_*, void*) {
+  SetDisplayCameraAnglePopup->position(mainWindow->x_root()+50, 
+                           mainWindow->y_root()+200);
+                      
+char buf[32];
+sprintf(buf, "%4.2f", derotator_graphics->GetDisplayCameraAngle());
+DisplayCameraAngleInput->value(buf);
+                         
+SetDisplayCameraAnglePopup->show();
+}
+void DeRotatorUI::cb_SetDisplayCameraAngle(Fl_Menu_* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_SetDisplayCameraAngle_i(o,v);
+}
+
 void DeRotatorUI::cb_IsLimitsEnabled_i(Fl_Menu_*, void*) {
   // enable or disable the derotator limits 
 using namespace std;
@@ -1005,6 +1019,7 @@ Fl_Menu_Item DeRotatorUI::menu_MenuBar[] = {
  {"Hardware &Setup", 0,  0, 0, 64, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Query hardware", 0,  (Fl_Callback*)DeRotatorUI::cb_QueryHardware, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Set Hall home ...", 0,  (Fl_Callback*)DeRotatorUI::cb_SetHallHome, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
+ {"Set display camera angle ...", 0,  (Fl_Callback*)DeRotatorUI::cb_SetDisplayCameraAngle, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Are limits enabled?", 0,  (Fl_Callback*)DeRotatorUI::cb_IsLimitsEnabled, 0, 2, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Is correction clockwise?", 0,  (Fl_Callback*)DeRotatorUI::cb_IsClockWise, 0, 130, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Setup hardware WLAN ...", 0,  (Fl_Callback*)DeRotatorUI::cb_SetHardwareWLAN, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
@@ -1031,18 +1046,19 @@ Fl_Menu_Item* DeRotatorUI::WifiIPAddress = DeRotatorUI::menu_MenuBar + 8;
 Fl_Menu_Item* DeRotatorUI::SerialDevPort = DeRotatorUI::menu_MenuBar + 9;
 Fl_Menu_Item* DeRotatorUI::QueryHardware = DeRotatorUI::menu_MenuBar + 12;
 Fl_Menu_Item* DeRotatorUI::SetHallHome = DeRotatorUI::menu_MenuBar + 13;
-Fl_Menu_Item* DeRotatorUI::IsLimitsEnabled = DeRotatorUI::menu_MenuBar + 14;
-Fl_Menu_Item* DeRotatorUI::IsClockWise = DeRotatorUI::menu_MenuBar + 15;
-Fl_Menu_Item* DeRotatorUI::SetHardwareWLAN = DeRotatorUI::menu_MenuBar + 16;
-Fl_Menu_Item* DeRotatorUI::SaveHardwareSetup = DeRotatorUI::menu_MenuBar + 17;
-Fl_Menu_Item* DeRotatorUI::LoadHardwareSetup = DeRotatorUI::menu_MenuBar + 18;
-Fl_Menu_Item* DeRotatorUI::LoadDefaultHardwareSetup = DeRotatorUI::menu_MenuBar + 19;
-Fl_Menu_Item* DeRotatorUI::IntroducingFieldDeRotator = DeRotatorUI::menu_MenuBar + 22;
-Fl_Menu_Item* DeRotatorUI::UserInterfaceHelp = DeRotatorUI::menu_MenuBar + 23;
-Fl_Menu_Item* DeRotatorUI::ControllerHelp = DeRotatorUI::menu_MenuBar + 24;
-Fl_Menu_Item* DeRotatorUI::About = DeRotatorUI::menu_MenuBar + 25;
-Fl_Menu_Item* DeRotatorUI::SerialStatus = DeRotatorUI::menu_MenuBar + 27;
-Fl_Menu_Item* DeRotatorUI::WifiStatus = DeRotatorUI::menu_MenuBar + 28;
+Fl_Menu_Item* DeRotatorUI::SetDisplayCameraAngle = DeRotatorUI::menu_MenuBar + 14;
+Fl_Menu_Item* DeRotatorUI::IsLimitsEnabled = DeRotatorUI::menu_MenuBar + 15;
+Fl_Menu_Item* DeRotatorUI::IsClockWise = DeRotatorUI::menu_MenuBar + 16;
+Fl_Menu_Item* DeRotatorUI::SetHardwareWLAN = DeRotatorUI::menu_MenuBar + 17;
+Fl_Menu_Item* DeRotatorUI::SaveHardwareSetup = DeRotatorUI::menu_MenuBar + 18;
+Fl_Menu_Item* DeRotatorUI::LoadHardwareSetup = DeRotatorUI::menu_MenuBar + 19;
+Fl_Menu_Item* DeRotatorUI::LoadDefaultHardwareSetup = DeRotatorUI::menu_MenuBar + 20;
+Fl_Menu_Item* DeRotatorUI::IntroducingFieldDeRotator = DeRotatorUI::menu_MenuBar + 23;
+Fl_Menu_Item* DeRotatorUI::UserInterfaceHelp = DeRotatorUI::menu_MenuBar + 24;
+Fl_Menu_Item* DeRotatorUI::ControllerHelp = DeRotatorUI::menu_MenuBar + 25;
+Fl_Menu_Item* DeRotatorUI::About = DeRotatorUI::menu_MenuBar + 26;
+Fl_Menu_Item* DeRotatorUI::SerialStatus = DeRotatorUI::menu_MenuBar + 28;
+Fl_Menu_Item* DeRotatorUI::WifiStatus = DeRotatorUI::menu_MenuBar + 29;
 
 void DeRotatorUI::cb_OK_i(Fl_Button* o, void*) {
   using namespace std;
@@ -1266,6 +1282,33 @@ void DeRotatorUI::cb_Cancel3(Fl_Button* o, void* v) {
   ((DeRotatorUI*)(o->parent()->user_data()))->cb_Cancel3_i(o,v);
 }
 
+void DeRotatorUI::cb_DisplayCameraAngleInput_i(Fl_Float_Input*, void*) {
+  derotator_graphics->SetDisplayCameraAngle(atof(DisplayCameraAngleInput->value()));
+
+SetDisplayCameraAnglePopup->hide();
+derotator_graphics->redraw();
+}
+void DeRotatorUI::cb_DisplayCameraAngleInput(Fl_Float_Input* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_DisplayCameraAngleInput_i(o,v);
+}
+
+void DeRotatorUI::cb_OK4_i(Fl_Button*, void*) {
+  derotator_graphics->SetDisplayCameraAngle(atof(DisplayCameraAngleInput->value()));
+
+SetDisplayCameraAnglePopup->hide();
+derotator_graphics->redraw();
+}
+void DeRotatorUI::cb_OK4(Fl_Button* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_OK4_i(o,v);
+}
+
+void DeRotatorUI::cb_Cancel4_i(Fl_Button*, void*) {
+  SetDisplayCameraAnglePopup->hide();
+}
+void DeRotatorUI::cb_Cancel4(Fl_Button* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_Cancel4_i(o,v);
+}
+
 DeRotatorUI::DeRotatorUI() {
   { mainWindow = new Fl_Double_Window(398, 478, "Field DeRotator");
     mainWindow->box(FL_UP_BOX);
@@ -1469,6 +1512,21 @@ DeRotatorUI::DeRotatorUI() {
     SetHallHomePopup->set_modal();
     SetHallHomePopup->end();
   } // Fl_Double_Window* SetHallHomePopup
+  { SetDisplayCameraAnglePopup = new Fl_Double_Window(300, 84, "Display camera angle");
+    SetDisplayCameraAnglePopup->user_data((void*)(this));
+    { DisplayCameraAngleInput = new Fl_Float_Input(215, 27, 55, 23, "Hall angle w.r.t. vertical (deg) : ");
+      DisplayCameraAngleInput->type(1);
+      DisplayCameraAngleInput->callback((Fl_Callback*)cb_DisplayCameraAngleInput);
+      DisplayCameraAngleInput->when(FL_WHEN_ENTER_KEY);
+    } // Fl_Float_Input* DisplayCameraAngleInput
+    { Fl_Button* o = new Fl_Button(20, 60, 63, 20, "OK");
+      o->callback((Fl_Callback*)cb_OK4);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(90, 60, 63, 20, "Cancel");
+      o->callback((Fl_Callback*)cb_Cancel4);
+    } // Fl_Button* o
+    SetDisplayCameraAnglePopup->end();
+  } // Fl_Double_Window* SetDisplayCameraAnglePopup
   // initialization code
   _serial_client = NULL;
   _tcp_client = NULL;
@@ -1565,8 +1623,9 @@ void DeRotatorUI::timer_cb(void* data) {
   rq._command = CMD_GET_ALTAZ_ZETA;
   
   ReplyPacket rp;
+  int status;
   
-  if(dr->SendCommand(&rq, &rp) == REPLY_OK){
+  if((status=dr->SendCommand(&rq, &rp)) == REPLY_OK){
   #ifdef AAAAA
     LOG_TRACE << "alt = " << rp._fvalue[0] << " "
               << "az = " << rp._fvalue[1] << " "
@@ -1588,7 +1647,16 @@ void DeRotatorUI::timer_cb(void* data) {
     dr->steps->value(buf);
   
   }
-  else {       
+  else {
+    switch(status){
+      case REPLY_DEROTATOR_STEPSIZE_ERR:
+        LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand(): step size too small";
+        return;
+      case REPLY_DEROTATOR_LIMITS_REACHED:
+        LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand(): limits reached";
+        return;
+      }
+             
     LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand() failed";
     return;
   }
