@@ -38,7 +38,7 @@ for the explanation.
 ## MAC OS X Frontend Executable
 
 A compiled app bundle for the Mac can be downloaded from the
-[releases repository](field_derotator/releases).
+[releases repository](https://github.com/cytan299/field_derotator/releases).
 
 ## Support
 
