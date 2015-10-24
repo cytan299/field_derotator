@@ -50,8 +50,8 @@ SEE ALSO
   Derotator continue status is sent back in ReplyPacket::_reply
 */
 
-#define REPLY_DEROTATOR_STEPSIZE_ERR	-1
-#define REPLY_DEROTATOR_LIMITS_REACHED	-2
+#define REPLY_DEROTATOR_STEPSIZE_ERR	-100
+#define REPLY_DEROTATOR_LIMITS_REACHED	-101
 
 
 struct ReplyPacket
