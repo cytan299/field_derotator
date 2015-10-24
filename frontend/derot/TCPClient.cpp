@@ -141,13 +141,23 @@ TCPClient::TCPClient(const char* serverIP, const int portNumber)
   arg &= (~O_NONBLOCK);
   fcntl(_sFd, F_SETFL, arg);
 
+  // set time out for socket read and write to 10 s
+
+  struct timeval tv;
+
+  tv.tv_sec = 10;  // 10 s timeout
+  tv.tv_usec = 0;  // Not init'ing this can cause strange errors
+
+  setsockopt(_sFd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+  setsockopt(_sFd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv,sizeof(struct timeval));
+  
 }
 catch(const string& message)
 {
   using namespace logging::trivial;
   src::severity_logger< severity_level > lg;
   
-  LOG_ERROR << message <<"\n";
+  LOG_ERROR << message;
 }
 
 TCPClient::~TCPClient()
@@ -164,7 +174,7 @@ int TCPClient::Send(RequestPacket* request)
   src::severity_logger< severity_level > lg;
   
   if(write(_sFd, (char*)request, sizeof(RequestPacket)) == -1){
-    LOG_ERROR << "TCPClient::Send(): Error sending request packet\n";
+    LOG_ERROR << "TCPClient::Send(): Error sending request packet";
     close(_sFd);	
     return -1;	
   }
@@ -178,7 +188,7 @@ int TCPClient::Receive(ReplyPacket* replyPacket)
   src::severity_logger< severity_level > lg;
   
   if(read(_sFd, (char*)replyPacket, sizeof(ReplyPacket)) < 0){  
-    LOG_ERROR << "TCPClient::Receive(replyPacket): Error reading socket\n";
+    LOG_ERROR << "TCPClient::Receive(replyPacket): Error reading socket";
     close(_sFd);
     return -1;
   }
@@ -193,7 +203,7 @@ int TCPClient::Receive(StatusPacket* statusPacket)
   src::severity_logger< severity_level > lg;
   
   if(read(_sFd, (char*)statusPacket, sizeof(StatusPacket)) < 0){  
-    LOG_ERROR << "TCPClient::Receive(statusPacket): Error reading socket\n";
+    LOG_ERROR << "TCPClient::Receive(statusPacket): Error reading socket";
     close(_sFd);
     return -1;
   }

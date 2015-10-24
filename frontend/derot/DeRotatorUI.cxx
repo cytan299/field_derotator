@@ -1655,6 +1655,32 @@ void DeRotatorUI::timer_cb(void* data) {
       case REPLY_DEROTATOR_LIMITS_REACHED:
         LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand(): limits reached";
         return;
+      case -1: 
+        // lost the connection so disconnect wifi or serial line
+        // and reactivate buttons
+  
+        if(dr->_tcp_client){
+          // close the tcp port
+          delete dr->_tcp_client;
+          dr->_tcp_client = NULL;
+          dr->WifiStatus->clear();
+         }
+  
+         if(dr->_serial_client){
+           delete dr->_serial_client;
+  	 dr->_serial_client = NULL;
+  	 dr->SerialStatus->clear();	   
+         }
+         dr->MenuBar->redraw(); // update the radio button status
+         
+         // reactive buttons	 
+         dr->Start->activate();
+         dr->Home->activate();
+  
+         dr->Send->activate();;
+         dr->SetHome->activate();
+         dr->SetCWLimit->activate();
+         dr->SetCCWLimit->activate();    
       }
              
     LOG_ERROR << "DeRotatorUI::timer_cb(): SendCommand() failed";
@@ -1777,41 +1803,50 @@ int DeRotatorUI::SendCommand(RequestPacket* const rq) {
   // send the given command to the derotator
   using namespace std;
   
-  if(_serial_client){
-    if(_serial_client->Send(rq) != 0){
-      throw string("Send request failed");
+  try{
+    if(_serial_client){
+      if(_serial_client->Send(rq) != 0){
+  	throw string("Serial: Send request failed");
+      }
     }
-  }
-  
-  if(_tcp_client){
-    if(_tcp_client->Send(rq) != 0){
-      throw string("Send request failed");
+    
+    if(_tcp_client){
+      if(_tcp_client->Send(rq) != 0){
+        throw string("TCP: Send request failed");
+      }
     }
-  }
-  
-  ReplyPacket rp;
-  if(_serial_client){
-    if(_serial_client->Receive(&rp) !=0){
-      throw string("Did not receive reply packet");
+    
+    ReplyPacket rp;
+    if(_serial_client){
+      if(_serial_client->Receive(&rp) !=0){
+        throw string("Serial: Did not receive reply packet");
+      }
     }
-  }
-  
-  if(_tcp_client){
-    if(_tcp_client->Receive(&rp) !=0){
-      throw string("Did not receive reply packet");
+    
+    if(_tcp_client){
+      if(_tcp_client->Receive(&rp) !=0){
+        throw string("TCP: Did not receive reply packet");
+      }
     }
+    
+    
+    if(rp._reply != REPLY_OK){
+      // throw string("Reply is not ok")
+      using namespace logging::trivial;
+      src::severity_logger< severity_level > lg;          
+      LOG_ERROR << "Reply is not ok";
+      LOG_ERROR << "Got reply = " << rp._reply;
+    }
+  
+    return rp._reply;    
   }
-  
-  
-  if(rp._reply != REPLY_OK){
-    // throw string("Reply is not ok");
+  catch(string& message){
     using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;          
-    LOG_ERROR << "Reply is not ok";
-    LOG_ERROR << "Got reply = " << rp._reply;
+    src::severity_logger< severity_level > lg; 
+    LOG_ERROR << "DeRotatorUI::SendCommand(): "
+              << message;
+    return -1;    
   }
-  
-  return rp._reply;
 }
 
 int DeRotatorUI::SendCommand(RequestPacket* const rq, ReplyPacket* const rp) {
@@ -1819,39 +1854,49 @@ int DeRotatorUI::SendCommand(RequestPacket* const rq, ReplyPacket* const rp) {
   // from the derotator
   using namespace std;
   
-  if(_serial_client){
-    if(_serial_client->Send(rq) != 0){
-      throw string("Send request failed");
+  try{
+      
+    if(_serial_client){
+      if(_serial_client->Send(rq) != 0){
+        throw string("Serial: Send request failed");
+      }
     }
-  }
-  
-  if(_tcp_client){
-    if(_tcp_client->Send(rq) != 0){
-      throw string("Send request failed");
+    
+    if(_tcp_client){
+      if(_tcp_client->Send(rq) != 0){
+        throw string("TCP: Send request failed");
+      }
     }
-  }
-  
-  
-  if(_serial_client){
-    if(_serial_client->Receive(rp) !=0){
-      throw string("Did not receive reply packet");
+    
+    
+    if(_serial_client){
+      if(_serial_client->Receive(rp) !=0){
+        throw string("Serial: Did not receive reply packet");
+      }
     }
-  }
-  
-  if(_tcp_client){
-    if(_tcp_client->Receive(rp) !=0){
-      throw string("Did not receive reply packet");
+    
+    if(_tcp_client){
+      if(_tcp_client->Receive(rp) !=0){
+        throw string("TCP: Did not receive reply packet");
+      }
     }
+    
+    
+    if(rp->_reply != REPLY_OK){
+      using namespace logging::trivial;
+      src::severity_logger< severity_level > lg;          
+      // throw string("Reply is not ok");
+      LOG_ERROR << "Reply is not ok";
+      LOG_ERROR << "Got reply = " << rp->_reply;
+    }
+    
+    return rp->_reply;
   }
-  
-  
-  if(rp->_reply != REPLY_OK){
+  catch(string& message){
     using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;          
-    // throw string("Reply is not ok");
-    LOG_ERROR << "Reply is not ok";
-    LOG_ERROR << "Got reply = " << rp->_reply;
+    src::severity_logger< severity_level > lg; 
+    LOG_ERROR << "DeRotatorUI::SendCommand(): "
+              << message;
+    return -1;    
   }
-  
-  return rp->_reply;
 }
