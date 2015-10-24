@@ -135,8 +135,14 @@ int Telescope::Init()
     }
   }
   else {
+    // for fast change
     alt = 88.2032;
-    az = 300.938;    
+    az = 300.938;
+#ifdef AAAAAA
+    // for slow change
+    alt = 30.2032;
+    az = 300.938;
+#endif    
   }
 #ifdef AAAAAAA
       Serial.print("alt = ");

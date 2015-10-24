@@ -282,10 +282,10 @@ private:
   double _alt0, _az0;  
   double _angle_rad;
   double _accumulated_angle_rad;
-  double _time;
-  double _dt;
+  unsigned long _time_us;
+  double _dt_us;
 
-  double _last_step_time_us;
+  unsigned long _last_step_time_us;
 
   bool _is_clockwise_correction;
 

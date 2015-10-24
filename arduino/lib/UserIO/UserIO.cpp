@@ -312,7 +312,7 @@ void UserIO::PrintAltAzRot(const double alt,
   _lcd.print(alt); _lcd.print(","); _lcd.print(az);      
   _lcd.setCursor(0,1);
   _lcd.print("  "); _lcd.write(ZETA); _lcd.print("=");
-  _lcd.print(angle);
+  _lcd.print(angle); _lcd.print(" "); // Add another space to clear any earlier character
 
   _lcd.setCursor(15,1);
 }

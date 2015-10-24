@@ -34,7 +34,7 @@
 	Defines for the mechanical de-rotator
  **********************************************************************/
 
-#define TIME_STEP	0.1 // this is arbitrary. I am setting 100 ms
+#define TIME_STEP_US	100000 // us = 100 ms. this is arbitrary. I am setting 100 ms
 			    // to be the smallest time interval that
 			    // the loop can be processed. So, if the
 			    // next time step is less than this, we
@@ -110,7 +110,7 @@ volatile bool DeRotator::_is_searching_for_hall_home = false;
 				// 200 steps required for 1 turn
 				// therefore 0.5 Hz
 
-#define MIN_STEPPER_TIME_US  static_cast<long>(1000000.0/STEPPER_SPEED) 			
+#define MIN_STEPPER_TIME_US  static_cast<unsigned long>(1e6/STEPPER_SPEED) 			
 
 DeRotator::DeRotator(Telescope* const telescope,
 		     const double mechanical_stepsize,
@@ -122,7 +122,7 @@ DeRotator::DeRotator(Telescope* const telescope,
   _MECHANICAL_STEPSIZE_RAD(mechanical_stepsize*DEG2RAD),
   _is_debug(is_debug)
 {
-  _time = 0;
+  _time_us = 0;
   _angle_rad = 0;
   _accumulated_angle_rad = 0;
 
@@ -149,16 +149,19 @@ int DeRotator::Start(const double alt, const double az)
   _stepper.resetTime();
   _latitude_rad = _telescope->GetLatitude()*DEG2RAD;  
   
-  _time = static_cast<double>(_last_step_time_us)*1e-6; // convert to seconds
-  _dt = predictor(_latitude_rad, alt, az, _MECHANICAL_STEPSIZE_RAD*DT_FRACTION);
+  _time_us = _last_step_time_us; 
+  _dt_us = predictor(_latitude_rad, alt, az, _MECHANICAL_STEPSIZE_RAD*DT_FRACTION)*1e6;
 
   _accumulated_angle_rad = 0.0;  
   _angle_rad = 0.0;
   _alt0 = alt;
   _az0 = az;
-
-  // _dt must be < sampling time step. If it is not return -1
-  if(_dt > TIME_STEP){
+#ifdef AAAAAA
+  Serial.print("last time step us= "); Serial.println(_last_step_time_us, DEC);
+  Serial.print("time us = "); Serial.println(_time_us, DEC);
+  Serial.print("dt us = "); Serial.println(_dt_us, 16);
+#endif
+  if(_dt_us > TIME_STEP_US){
     return 0;
   }
   else {
@@ -169,18 +172,18 @@ int DeRotator::Start(const double alt, const double az)
 int DeRotator::Continue()
 {
   int status = 0;
-  unsigned long time_us = micros(); // time since micro woke up in us. Note wraps in 70 minutes!
-  double dtime = static_cast<double>(time_us)*1e-6 - _time; // seconds
+  unsigned long time_us = micros(); // time since micro woke up in us. Note wraps in 1hr15 minutes!
+  unsigned long time_ms = millis(); // time since micro woke up in ms. Note wraps in 50 days!
+  unsigned long dtime_us = time_us - _time_us; // us
 
-  unsigned long next_step_time_us = _last_step_time_us + MIN_STEPPER_TIME_US;
   /*
     check that both dtime and that the stepper will cause a step to
     take place. The reason is that a while() loop check in
     step_motor() screws up the correction timing.
    */
-  if((dtime >= _dt) && (static_cast<long>(time_us - next_step_time_us) >= 0)){
+  if((dtime_us >= _dt_us) && ((time_us - _last_step_time_us) >= MIN_STEPPER_TIME_US)){
     // calculate the incremental angular change	
-    double dangle_rad = dzeta_dt(_latitude_rad, _alt0, _az0)*dtime; // rad
+    double dangle_rad = dzeta_dt(_latitude_rad, _alt0, _az0)*dtime_us*1e-6; // rad
 
     // check whether we need to actually turn the de-rotator motor
     // Note since dzeta_dt can be NEGATIVE, the angle can be negative.
@@ -219,14 +222,17 @@ int DeRotator::Continue()
 	}
 
         // Now remember the current time and calculate the time increment of the next step
-	_time = static_cast<double>(time_us)*1e-6;
-	_telescope->GetAltAz(_time, &_alt0, &_az0);
-	_dt = predictor(_latitude_rad, _alt0, _az0, _MECHANICAL_STEPSIZE_RAD*DT_FRACTION);
+	_time_us = time_us;
+	_telescope->GetAltAz(time_ms*1e-3, &_alt0, &_az0);
+	_dt_us = predictor(_latitude_rad, _alt0, _az0, _MECHANICAL_STEPSIZE_RAD*DT_FRACTION)*1e6;
 
         // check that the next time step is not smaller than our sampling time
-	if(_dt > TIME_STEP){
+	if(_dt_us > TIME_STEP_US){
 	  status = 1; // tell user that we have made stepper motor take one step and next
 		      // predicted time step is ok.
+#ifdef AAAAAA
+	  Serial.print(_time_us, DEC); Serial.print(" "); Serial.println(_accumulated_angle_rad, 12);
+#endif	  
         }
 	else {
 	  status = -1;      // else tell user the predicted time step is too small
@@ -240,11 +246,11 @@ int DeRotator::Continue()
     else { // I am not turning the motor, but I still need to update the _angle_rad
       _angle_rad += dangle_rad;
       // Now remember the current time and calculate the time increment of the next step
-      _time = static_cast<double>(time_us)*1e-6; //s
-      _telescope->GetAltAz(_time, &_alt0, &_az0);
-      _dt = predictor(_latitude_rad, _alt0, _az0, _MECHANICAL_STEPSIZE_RAD*DT_FRACTION);
+      _time_us = time_us; //us
+      _telescope->GetAltAz(time_ms*1e-3, &_alt0, &_az0);
+      _dt_us = predictor(_latitude_rad, _alt0, _az0, _MECHANICAL_STEPSIZE_RAD*DT_FRACTION)*1e6;
       // check that the next time step is not smaller than our sampling time
-      if(_dt > TIME_STEP){
+      if(_dt_us > TIME_STEP_US){
 	status = 0; // tell user not to do anything yet, but everything is still ok
       }
       else {
