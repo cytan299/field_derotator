@@ -35,9 +35,10 @@ this device because field derotation will not work without it.  See
 [field_derotator_formula.pdf](field_derotator_formula/field_derotator_formula.pdf)
 for the explanation.
 
-## MAC OS X Executable
+## MAC OS X Frontend Executable
 
-A compiled app bundle for the Mac can be downloaded from the link [derot_macosx.zip](derot_macosx.zip).
+A compiled app bundle for the Mac can be downloaded from the
+[releases repository](field_derotator/releases).
 
 ## Support
 
