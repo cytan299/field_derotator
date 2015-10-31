@@ -41,6 +41,9 @@ June 2015
   <LI> <a href="#Home">Setting up HOME</A>
   <LI> <a href="#ArbitraryAngle">Rotating to an arbitrary angle</A>
   <LI> <a href="#HomePosition">Setting up the HOME position</A>
+  <UL>
+    <LI><a href="#DisplayAngle">Setting up the display angle</A>
+  </UL>  
   <LI> <a href="#SettingLimits">Setting the CW and CCW limits</A>
   <LI> <a href="#Derotation">Derotation</A>
   <UL>
@@ -330,9 +333,34 @@ and the camera will rotate to this new HOME.
 <center>
 <img src="pics/new_home.png">
 </center>
+
+<A NAME="DisplayAngle"></A>
+<H2>Setting up the display angle</H2>
+
+The display angle shown on the frontend is probably not the one that
+you have set up in "real life". You set up the display angle of the
+camera by choosing
+<center>
+  <img src="pics/setup_display_angle.png">  
+</center>
+and filling in the angle in degrees. For example to 90 degrees
+<center>
+  <img src="pics/fillin_display_angle.png">  
+</center>
+After you do this the displayed camera is rotated by 90 degrees
+<center>
+  <img src="pics/rotated_90.png">  
+</center>
+
+
 <HR>
 <A NAME="SettingLimits"></A>
 <H1>Setting the CW and CCW limits</H1>
+
+<b>It is important to check that the camera does not rotate into any
+obstruction. One thing to check is that the camera does not hit the
+driver connector on the driver board.</b>
+<p>
 
 You can set up the clockwise (CW) and counter clockwise (CCW) limits
 that the camera can rotate to by enabling the limits
