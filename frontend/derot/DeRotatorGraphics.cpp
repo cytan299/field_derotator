@@ -368,12 +368,12 @@ void DeRotatorGraphics::draw()
 
       case CW_POS_MODE:
 	glBindTexture(GL_TEXTURE_2D, _cw_texture_id);
-        glRotatef((GLfloat)(_z_tmp_cw_angle),0,0,1.0);   	
+        glRotatef((GLfloat)(_z_tmp_cw_angle + _z_display_camera_angle),0,0,1.0);   	
       break;
 
       case CCW_POS_MODE:
 	glBindTexture(GL_TEXTURE_2D, _ccw_texture_id);
-        glRotatef((GLfloat)(_z_tmp_ccw_angle),0,0,1.0);   	
+        glRotatef((GLfloat)(_z_tmp_ccw_angle + _z_display_camera_angle),0,0,1.0);   	
       break;      
     }
     
@@ -394,7 +394,7 @@ void DeRotatorGraphics::draw()
     if(_drawing_mode == CAMERA_OUTLINE_MODE){
       glPushMatrix();
         glBindTexture(GL_TEXTURE_2D, _cw_arrow_texture_id);
-        glRotatef((GLfloat)(_z_max_cw_angle),0,0,1.0);
+        glRotatef((GLfloat)(_z_max_cw_angle + _z_display_camera_angle),0,0,1.0);
         glBegin(GL_QUADS);
         {
 	  double dx = -7.45;
@@ -409,7 +409,7 @@ void DeRotatorGraphics::draw()
 
       glPushMatrix();
         glBindTexture(GL_TEXTURE_2D, _ccw_arrow_texture_id);
-        glRotatef((GLfloat)(_z_max_ccw_angle),0,0,1.0);
+        glRotatef((GLfloat)(_z_max_ccw_angle + _z_display_camera_angle),0,0,1.0);
         glBegin(GL_QUADS);
         {
           double dx = -7.45;
