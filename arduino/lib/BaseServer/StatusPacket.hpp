@@ -1,4 +1,4 @@
-/* $Id: StatusPacket.hpp | Sat Aug 1 23:56:42 2015 -0500 | cytan  $ */
+/* $Id$ */
 /*
     derot is the GUI frontend that controls the field derotator
     Copyright (C) 2015  C.Y. Tan
@@ -48,6 +48,8 @@ SEE ALSO
 #define WLAN_WEP	1
 #define WLAN_WPA	2
 #define WLAN_WPA2	3
+
+#define REPLY_IS_DEROTATING	10
 
 struct StatusPacket
 {

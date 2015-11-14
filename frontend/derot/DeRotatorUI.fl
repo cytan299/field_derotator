@@ -47,7 +47,7 @@ class DeRotatorUI {
     Fl_Window mainWindow {
       label {Field DeRotator}
       callback {exit(0);} open
-      xywh {646 64 398 478} type Double box UP_BOX
+      xywh {429 314 398 478} type Double box UP_BOX
       code0 {\#include <string>}
       code1 {\#include <iostream>}
       code2 {\#include "logging.hpp"} visible
@@ -758,7 +758,8 @@ if(_tcp_client){
   }
 }   
 
-if(sp._reply == REPLY_OK){
+if(sp._reply >= 0){
+
   sp._is_clockwise_correction > 0? IsClockWise->set(): IsClockWise->clear();
   
   if(sp._is_enable_limits > 0){
@@ -815,6 +816,38 @@ if(sp._reply == REPLY_OK){
   LOG_INFO << "Setting Hall home " << -HS2FA(sp._home_pos);
   derotator_graphics->SetHallAngle(-HS2FA(sp._home_pos));
   derotator_graphics->SetHomeAngle(HS2FA(sp._home_pos));
+  
+  // check that if the derotator is already doing derotation
+  if(sp._reply == REPLY_IS_DEROTATING){
+        
+    /* get telescope position */
+    rq._command = CMD_GET_ALTAZ_ZETA;
+    ReplyPacket rp;
+
+    if(SendCommand(&rq, &rp) == REPLY_OK){
+      LOG_TRACE << "Start: telescope at ("
+                << rp._fvalue[0] << ", "
+                << rp._fvalue[1]  << ")";
+    }
+    else {
+      LOG_ERROR << "DeRotatorUI::QueryHardware: SendCommand() failed";
+      return;
+    }
+    
+    // deactivate buttons that could cause problems when pressed during this time
+    Start->deactivate();
+    Home->deactivate();
+
+    Send->deactivate();
+    SetHome->deactivate();
+    SetCWLimit->deactivate();
+    SetCCWLimit->deactivate();
+    
+    //Now start a timer to collect angle data from the derotator
+    Fl::add_timeout(REPEAT_TIME, timer_cb, this);
+     
+  }
+
 }
 else {
   using namespace logging::trivial;
@@ -1028,7 +1061,7 @@ else {
   _tcp_client = NULL;
   WifiStatus->clear();
   MenuBar->redraw(); // update the wifi radio button
-}}
+}} selected
           xywh {0 0 31 20} type Radio
         }
       }
@@ -1575,7 +1608,7 @@ else {
   Fl::remove_timeout(timer_cb1, data);
 }} {}
   }
-  Function {timer_cb2(void* data)} {open selected return_type {static void}
+  Function {timer_cb2(void* data)} {open return_type {static void}
   } {
     code {// get the angle of the derotator w.r.t. user home and stop when it is equal to the user wanted angle
 using namespace std;

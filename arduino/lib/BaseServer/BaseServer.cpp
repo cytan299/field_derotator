@@ -207,7 +207,15 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
 	_userio->_is_goto_user_angle = true;
       break;
       case CMD_QUERY_STATE:
-	sp->_reply = REPLY_OK;
+	// send back the state of the derotator
+	// whether it is rotating already
+	if ((_userio->_is_start_derotator == false) &&
+	    (_userio->_is_stop_derotator == false)){
+	  sp->_reply = REPLY_IS_DEROTATING;
+	}
+	else {
+	  sp->_reply = REPLY_OK;
+	}
 	sp->_is_clockwise_correction = _derotator->GetCorrectionDirection()? 1:0;
 	sp->_is_enable_limits = _derotator->IsEnableLimits()? 1:0;
 

@@ -713,7 +713,8 @@ if(_tcp_client){
   }
 }   
 
-if(sp._reply == REPLY_OK){
+if(sp._reply >= 0){
+
   sp._is_clockwise_correction > 0? IsClockWise->set(): IsClockWise->clear();
   
   if(sp._is_enable_limits > 0){
@@ -770,6 +771,39 @@ if(sp._reply == REPLY_OK){
   LOG_INFO << "Setting Hall home " << -HS2FA(sp._home_pos);
   derotator_graphics->SetHallAngle(-HS2FA(sp._home_pos));
   derotator_graphics->SetHomeAngle(HS2FA(sp._home_pos));
+  
+  // check that if the derotator is already doing derotation
+  if(sp._reply == REPLY_IS_DEROTATING){
+    cerr << "***** got here\n";
+    
+    /* get telescope position */
+    rq._command = CMD_GET_ALTAZ_ZETA;
+    ReplyPacket rp;
+
+    if(SendCommand(&rq, &rp) == REPLY_OK){
+      LOG_TRACE << "Start: telescope at ("
+                << rp._fvalue[0] << ", "
+                << rp._fvalue[1]  << ")";
+    }
+    else {
+      LOG_ERROR << "DeRotatorUI::QueryHardware: SendCommand() failed";
+      return;
+    }
+    
+    // deactivate buttons that could cause problems when pressed during this time
+    Start->deactivate();
+    Home->deactivate();
+
+    Send->deactivate();
+    SetHome->deactivate();
+    SetCWLimit->deactivate();
+    SetCCWLimit->deactivate();
+    
+    //Now start a timer to collect angle data from the derotator
+    Fl::add_timeout(REPEAT_TIME, timer_cb, this);
+     
+  }
+
 }
 else {
   using namespace logging::trivial;
