@@ -49,6 +49,8 @@ SEE ALSO
 #define WLAN_WPA	2
 #define WLAN_WPA2	3
 
+#define REPLY_IS_DEROTATING	10
+
 struct StatusPacket
 {
   int16_t _reply;
