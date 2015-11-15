@@ -774,8 +774,7 @@ if(sp._reply >= 0){
   
   // check that if the derotator is already doing derotation
   if(sp._reply == REPLY_IS_DEROTATING){
-    cerr << "***** got here\n";
-    
+        
     /* get telescope position */
     rq._command = CMD_GET_ALTAZ_ZETA;
     ReplyPacket rp;
