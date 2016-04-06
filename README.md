@@ -76,7 +76,19 @@ controller.
 ## Other information
 
 More information can be found in he *README.md* files in each
-directory and the [wiki](https://github.com/cytan299/field_derotator/wiki/A-Field-DeRotator-for-Alt-Az-Telescopes-Used-for-Astrophotography) of this project on github.
+directory and the
+[wiki](https://github.com/cytan299/field_derotator/wiki/A-Field-DeRotator-for-Alt-Az-Telescopes-Used-for-Astrophotography)
+of this project on github.
+
+## Publications
+
+This project has been published in
+[Circuit Cellar Ink](http://www.circuitcellar.com) Issues 309 (April
+2016) and 310 (May 2016), titled "A Field DeRotator for
+Astrophotography by C.Y. Tan" Parts 1 and 2. Details of the motivation
+for building the field derotator can be found in Issue 308 and the
+description of the electronic circuits, and gear ratio calculations
+can be found in Issue 309.
 
 ## Copyright
 All the software, documentation, hardware that I have written is
