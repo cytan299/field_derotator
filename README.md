@@ -86,9 +86,9 @@ This project has been published in
 [Circuit Cellar Ink](http://www.circuitcellar.com) Issues 309 (April
 2016) and 310 (May 2016), titled "A Field DeRotator for
 Astrophotography by C.Y. Tan" Parts 1 and 2. Details of the motivation
-for building the field derotator can be found in Issue 308 and the
+for building the field derotator can be found in Issue 309 and the
 description of the electronic circuits, and gear ratio calculations
-can be found in Issue 309.
+can be found in Issue 310.
 
 ## Copyright
 All the software, documentation, hardware that I have written is
