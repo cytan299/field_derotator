@@ -47,7 +47,7 @@ class DeRotatorUI {
     Fl_Window mainWindow {
       label {Field DeRotator}
       callback {exit(0);} open
-      xywh {429 314 398 478} type Double box UP_BOX
+      xywh {133 362 398 478} type Double box UP_BOX
       code0 {\#include <string>}
       code1 {\#include <iostream>}
       code2 {\#include "logging.hpp"} visible
@@ -799,6 +799,13 @@ if(sp._reply >= 0){
   // update the ssid and security type
   WLANSSID->value(sp._WLAN_ssid);
   WLANSecurity->value(sp._WLAN_security);
+  
+  // update the Earth's rotation rate
+  sprintf(buf, "%2.7e",sp._omega);
+  EarthOmegaInput->value(buf);
+  sprintf(buf, "%4.4f", sp._omega/OMEGA);
+  TweakValueInput->value(buf);
+
 
   using namespace logging::trivial;
   src::severity_logger< severity_level > lg;      
@@ -816,6 +823,8 @@ if(sp._reply >= 0){
   LOG_INFO << "Setting Hall home " << -HS2FA(sp._home_pos);
   derotator_graphics->SetHallAngle(-HS2FA(sp._home_pos));
   derotator_graphics->SetHomeAngle(HS2FA(sp._home_pos));
+  
+  LOG_INFO << "Earth's rotation rate " << sp._omega << " rad/s";
   
   // check that if the derotator is already doing derotation
   if(sp._reply == REPLY_IS_DEROTATING){
@@ -870,6 +879,22 @@ HallAngleInput->value(buf);
                          
 SetHallHomePopup->show();}
             xywh {0 0 31 20} divider
+          }
+          MenuItem SetEarthOmega {
+            label {Set Earth's rotation rate ...}
+            callback {SetEarthOmegaPopup->position(mainWindow->x_root()+50, 
+                           mainWindow->y_root()+200);
+
+// tell SetEarthOmegaCancel the old original value so that it can be restored on cancel                           
+static float orig_omega;
+orig_omega = atof(EarthOmegaInput->value());
+
+SetEarthOmegaOK->user_data((void*)(&orig_omega));
+SetEarthOmegaCancel->user_data((void*)(&orig_omega));
+
+                    
+SetEarthOmegaPopup->show();}
+            xywh {0 0 40 20} divider
           }
           MenuItem SetDisplayCameraAngle {
             label {Set display camera angle ...}
@@ -1061,7 +1086,7 @@ else {
   _tcp_client = NULL;
   WifiStatus->clear();
   MenuBar->redraw(); // update the wifi radio button
-}} selected
+}}
           xywh {0 0 31 20} type Radio
         }
       }
@@ -1140,7 +1165,7 @@ if(_tcp_client == NULL){
     }
     Fl_Window SerialDevPopup {
       label {Serial Device Name} open
-      xywh {466 346 300 84} type Double hide modal
+      xywh {466 346 300 84} type Double modal visible
     } {
       Fl_Input SerialDevice {
         label {Serial device: }
@@ -1165,11 +1190,16 @@ if(_serial_client == NULL){
   // set the serial radio button
   SerialStatus->set();
   
- \#ifdef AAAAA
-   // get the current hardware status of the derotator
-  QueryHardware->do_callback(o);  
-\#endif
+  // done waiting. Now there's a lot serial strings that gets
+  // sent from the controller
+
+  _serial_client->ReadStringUntil();
+  _serial_client->ReadStringUntil();
+  _serial_client->ReadStringUntil();
   
+    // get the current hardware status of the derotator
+  QueryHardware->do_callback(o); 
+   
   // disconnect Wifi if connected and untoggle the wifi button
   if(_tcp_client){
     delete _tcp_client;
@@ -1182,7 +1212,7 @@ if(_serial_client == NULL){
  LOG_INFO << "Serial Connected!";
 }
 
-SerialDevPopup->hide();}
+SerialDevPopup->hide();} selected
         xywh {10 50 63 20}
       }
       Fl_Button {} {
@@ -1392,6 +1422,117 @@ derotator_graphics->redraw();}
         label Cancel
         callback {SetDisplayCameraAnglePopup->hide();}
         xywh {90 60 63 20}
+      }
+    }
+    Fl_Window SetEarthOmegaPopup {
+      label {Earth's rotation rate} open
+      xywh {373 67 300 120} type Double hide
+    } {
+      Fl_Input EarthOmegaInput {
+        label {Earth's rotation rate (rad/s)}
+        callback {float new_omega = atof(EarthOmegaInput->value());
+
+if((new_omega > 0.9*OMEGA) && (new_omega < 1.1*OMEGA)){
+
+  // update the tweak value if new_omega is ok
+
+  char buf[32];  
+  sprintf(buf, "%4.4f", new_omega/OMEGA);
+  TweakValueInput->value(buf);
+
+}
+else {
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+  
+  LOG_ERROR << "Earth's rotation tweak must be within 10% of default value";
+  
+  float tweak = atof(TweakValueInput->value());
+  // put back old value of earth's omega
+  char buf[32];
+  sprintf(buf, "%2.7e", tweak*OMEGA);
+  o->value(buf);
+
+}}
+        xywh {180 20 110 23} type Float hotspot
+      }
+      Fl_Input TweakValueInput {
+        label {Tweak value}
+        callback {float tweak = atof(TweakValueInput->value());
+float new_omega = OMEGA*tweak;
+
+if((new_omega > 0.9*OMEGA) && (new_omega < 1.1*OMEGA)){
+  char buf[32];
+  sprintf(buf, "%2.7e", new_omega);
+  EarthOmegaInput->value(buf);
+}
+else {
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+  
+  LOG_ERROR << "Earth's rotation tweak must be within 10% of default value";
+  
+  float omega = atof(EarthOmegaInput->value());
+  // put back old value of tweak
+  char buf[32];
+  sprintf(buf, "%4.4f", omega/OMEGA);
+  o->value(buf);
+
+}}
+        xywh {180 45 110 24} type Float
+        code0 {\#include "constants.h"}
+      }
+      Fl_Button SetEarthOmegaOK {
+        label OK
+        callback {using namespace logging::trivial;
+src::severity_logger< severity_level > lg; 
+
+float omega = atof(EarthOmegaInput->value());
+
+RequestPacket rq;
+rq._command = CMD_SET_OMEGA_VALUE;
+rq._fvalue[0] = omega;
+
+if(SendCommand(&rq) != REPLY_OK){    
+  LOG_ERROR << "DeRotatorUI::Send: SendCommand() error: cannot set omega value";
+  
+  // put back the old values since it's in error
+  float* omega = (float*)(o->user_data());
+  
+  char buf[32];
+  sprintf(buf, "%2.7e", *omega);
+  EarthOmegaInput->value(buf);
+  
+  sprintf(buf, "%4.4f", (*omega)/OMEGA);
+  TweakValueInput->value(buf);
+    
+  return;
+}
+
+
+LOG_INFO << "New Earth's rotation rate: " 
+         << omega
+         << " rad/s";
+          
+SetEarthOmegaPopup->hide();}
+        xywh {20 90 63 20}
+      }
+      Fl_Button SetEarthOmegaCancel {
+        label Cancel
+        callback {float* orig_omega = (float*)(o->user_data());
+
+// set both input values to their original values
+char buf[32];
+sprintf(buf, "%2.7e", *orig_omega);
+EarthOmegaInput->value(buf);
+
+sprintf(buf, "%4.4f", *orig_omega/OMEGA);
+TweakValueInput->value(buf);
+
+SetEarthOmegaPopup->hide();}
+        xywh {90 90 63 20}
       }
     }
     code {// initialization code

@@ -231,6 +231,9 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
 	_userio->GetSSID(static_cast<char*>(sp->_WLAN_ssid), &security);
 	sp->_WLAN_security = security;
 	sp->_WLAN_password[0] = '\0'; // never send back the password
+
+	sp->_omega = _derotator->GetOmega();
+
       break;
 
       case CMD_GET_USER_HOME_POS:
@@ -261,7 +264,19 @@ int BaseServer::ServiceRequests(RequestPacket* const rq,
       case CMD_SET_WLAN_SECURITY:
 	rp->_reply = REPLY_OK;
 	_userio->SetSecurity(rq->_ivalue);	
-      break;	
+      break;
+
+    case CMD_SET_OMEGA_VALUE:
+      rp->_reply = REPLY_OK;
+      double omega;
+      omega = rq->_fvalue[0];
+      _derotator->SetOmega(omega);
+      break;
+
+    case CMD_GET_OMEGA_VALUE:
+	rp->_reply = REPLY_OK;		
+        rp->_fvalue[0] = _derotator->GetOmega();      
+      break;      
     }
   }
   return 0;  

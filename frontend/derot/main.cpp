@@ -32,6 +32,8 @@
 #include "boost/program_options.hpp"
 
 /* local include files (use "") */
+#include "constants.h"
+
 #include "TCPClient.hpp"
 #include "SerialClient.hpp"
 #include "logging.hpp"
@@ -39,6 +41,7 @@
 #include "DeRotatorUI.h"
 #include "MessageSink.hpp"
 #include "DeRotatorCMD.hpp"
+
 
 using namespace std;
 
@@ -193,6 +196,8 @@ int process_options(int argc, char **argv)
 
   double time; // in seconds
 
+  double omega; // rad/s (Earth's rotation rate)
+
   using boost::lexical_cast;    
   namespace po = boost::program_options;
   // derot command line options
@@ -209,6 +214,8 @@ int process_options(int argc, char **argv)
     ("gotoS,G", po::value<int64_t>(&steps), "goto steps w.r.t. home")        
     ("time,t", po::value<double>(&time),
      "time to complete from start to stop in seconds")
+    ("omega,o", po::value<double>(&omega)->default_value(OMEGA),
+     "rotation rate of the earth in rad/s")
     ("version,v", "print version")
     ;
 
@@ -285,6 +292,13 @@ int process_options(int argc, char **argv)
   if(is_got_range || is_got_time){
     if(dcmd.Goto(drange[0], drange[1], time) !=0){
       throw string("process_options(): Goto(): failed\n");      
+    }
+    return 1;
+  }
+
+  if(vm.count("omega")){
+    if(dcmd.SetOmega(omega) != 0){
+      throw string("process_options(): SetOmega(): failed\n");      
     }
     return 1;
   }

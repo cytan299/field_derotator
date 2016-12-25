@@ -1,4 +1,4 @@
-/*$Id: derot.ino | Sat Aug 1 23:40:33 2015 -0500 | cytan  $*/
+/*$Id$*/
 /*
     derot is the controller code for the Arduino MEGA2560
     Copyright (C) 2015  C.Y. Tan
@@ -118,7 +118,7 @@ AUTHOR
 	C.Y. Tan
 
 REVISION
-	$Revision: 8e430555c26e065fd1ecf289d6436d9f681033a7 $
+	$Revision$
 
 SEE ALSO
 
@@ -137,6 +137,9 @@ void setup()
   if(telescope.Connect() != 0){
     userio.Print("Cannot connect ", "to telescope", 2000);
     Serial.print(F("setup(): Cannot connect to telescope\n"));
+  }
+  else {
+    Serial.print(F("Connected to telescope\n"));
   }
 }
 

@@ -222,8 +222,12 @@ int SerialClient::ReadString()
 
     int sz;
     while((sz = IsGotData()) > 0){
+      string s;
+      s = _serial->readString(sz);
+
       LOG_TRACE << "[" << sz << "]:"
-		<< _serial->readString(sz) << "\n";      
+		<< s << "\n";
+
     }
 
     return 0;
@@ -232,6 +236,11 @@ int SerialClient::ReadString()
     LOG_ERROR << "SerialClient::ReadString(): serial port does not exist\n";
     return -1;
   }
+}
+
+std::string SerialClient::ReadStringUntil(const std::string& delim)
+{
+  return _serial->readStringUntil(delim);
 }
   
 

@@ -29,6 +29,7 @@
 #include "boost/property_tree/ini_parser.hpp"
 
 /* local include files (use "") */
+#include "constants.h"
 #include "DeRotatorUI.h"
 #include "DeRotatorConfig.hpp"
 
@@ -118,6 +119,13 @@ int DeRotatorConfig::Load(const char* filename)
   _prefs->get("wlan_security", ival, 0);
   _derotatorUI->WLANSecurity->value(ival);
 
+
+  _prefs->get("Earth's tweaked rotation rate", fval, OMEGA);
+  sprintf(buf, "%2.7e", fval);
+  _derotatorUI->EarthOmegaInput->value(buf);
+  sprintf(buf, "%4.4f", fval/OMEGA);
+  _derotatorUI->TweakValueInput->value(buf);
+
   return 0;
 }
 
@@ -134,6 +142,8 @@ int DeRotatorConfig::Save(const char* filename)
   _prefs->set("SerialDevice", _derotatorUI->SerialDevice->value());
   _prefs->set("is_correction_clockwise", _derotatorUI->IsClockWise->value() !=0?1:0);
   _prefs->set("Display camera angle", _derotatorUI->derotator_graphics->GetDisplayCameraAngle());
+  
+  _prefs->set("Earth's tweaked rotation rate", _derotatorUI->EarthOmegaInput->value());
   _prefs->flush();
 
   return 0;

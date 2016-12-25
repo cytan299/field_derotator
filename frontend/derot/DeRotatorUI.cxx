@@ -754,6 +754,13 @@ if(sp._reply >= 0){
   // update the ssid and security type
   WLANSSID->value(sp._WLAN_ssid);
   WLANSecurity->value(sp._WLAN_security);
+  
+  // update the Earth's rotation rate
+  sprintf(buf, "%2.7e",sp._omega);
+  EarthOmegaInput->value(buf);
+  sprintf(buf, "%4.4f", sp._omega/OMEGA);
+  TweakValueInput->value(buf);
+
 
   using namespace logging::trivial;
   src::severity_logger< severity_level > lg;      
@@ -771,6 +778,8 @@ if(sp._reply >= 0){
   LOG_INFO << "Setting Hall home " << -HS2FA(sp._home_pos);
   derotator_graphics->SetHallAngle(-HS2FA(sp._home_pos));
   derotator_graphics->SetHomeAngle(HS2FA(sp._home_pos));
+  
+  LOG_INFO << "Earth's rotation rate " << sp._omega << " rad/s";
   
   // check that if the derotator is already doing derotation
   if(sp._reply == REPLY_IS_DEROTATING){
@@ -828,6 +837,24 @@ SetHallHomePopup->show();
 }
 void DeRotatorUI::cb_SetHallHome(Fl_Menu_* o, void* v) {
   ((DeRotatorUI*)(o->parent()->user_data()))->cb_SetHallHome_i(o,v);
+}
+
+void DeRotatorUI::cb_SetEarthOmega_i(Fl_Menu_*, void*) {
+  SetEarthOmegaPopup->position(mainWindow->x_root()+50, 
+                           mainWindow->y_root()+200);
+
+// tell SetEarthOmegaCancel the old original value so that it can be restored on cancel                           
+static float orig_omega;
+orig_omega = atof(EarthOmegaInput->value());
+
+SetEarthOmegaOK->user_data((void*)(&orig_omega));
+SetEarthOmegaCancel->user_data((void*)(&orig_omega));
+
+                    
+SetEarthOmegaPopup->show();
+}
+void DeRotatorUI::cb_SetEarthOmega(Fl_Menu_* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_SetEarthOmega_i(o,v);
 }
 
 void DeRotatorUI::cb_SetDisplayCameraAngle_i(Fl_Menu_*, void*) {
@@ -1052,6 +1079,7 @@ Fl_Menu_Item DeRotatorUI::menu_MenuBar[] = {
  {"Hardware &Setup", 0,  0, 0, 64, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Query hardware", 0,  (Fl_Callback*)DeRotatorUI::cb_QueryHardware, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Set Hall home ...", 0,  (Fl_Callback*)DeRotatorUI::cb_SetHallHome, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
+ {"Set Earth\'s rotation rate ...", 0,  (Fl_Callback*)DeRotatorUI::cb_SetEarthOmega, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Set display camera angle ...", 0,  (Fl_Callback*)DeRotatorUI::cb_SetDisplayCameraAngle, 0, 128, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Are limits enabled?", 0,  (Fl_Callback*)DeRotatorUI::cb_IsLimitsEnabled, 0, 2, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Is correction clockwise?", 0,  (Fl_Callback*)DeRotatorUI::cb_IsClockWise, 0, 130, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
@@ -1079,19 +1107,20 @@ Fl_Menu_Item* DeRotatorUI::WifiIPAddress = DeRotatorUI::menu_MenuBar + 8;
 Fl_Menu_Item* DeRotatorUI::SerialDevPort = DeRotatorUI::menu_MenuBar + 9;
 Fl_Menu_Item* DeRotatorUI::QueryHardware = DeRotatorUI::menu_MenuBar + 12;
 Fl_Menu_Item* DeRotatorUI::SetHallHome = DeRotatorUI::menu_MenuBar + 13;
-Fl_Menu_Item* DeRotatorUI::SetDisplayCameraAngle = DeRotatorUI::menu_MenuBar + 14;
-Fl_Menu_Item* DeRotatorUI::IsLimitsEnabled = DeRotatorUI::menu_MenuBar + 15;
-Fl_Menu_Item* DeRotatorUI::IsClockWise = DeRotatorUI::menu_MenuBar + 16;
-Fl_Menu_Item* DeRotatorUI::SetHardwareWLAN = DeRotatorUI::menu_MenuBar + 17;
-Fl_Menu_Item* DeRotatorUI::SaveHardwareSetup = DeRotatorUI::menu_MenuBar + 18;
-Fl_Menu_Item* DeRotatorUI::LoadHardwareSetup = DeRotatorUI::menu_MenuBar + 19;
-Fl_Menu_Item* DeRotatorUI::LoadDefaultHardwareSetup = DeRotatorUI::menu_MenuBar + 20;
-Fl_Menu_Item* DeRotatorUI::IntroducingFieldDeRotator = DeRotatorUI::menu_MenuBar + 23;
-Fl_Menu_Item* DeRotatorUI::UserInterfaceHelp = DeRotatorUI::menu_MenuBar + 24;
-Fl_Menu_Item* DeRotatorUI::ControllerHelp = DeRotatorUI::menu_MenuBar + 25;
-Fl_Menu_Item* DeRotatorUI::About = DeRotatorUI::menu_MenuBar + 26;
-Fl_Menu_Item* DeRotatorUI::SerialStatus = DeRotatorUI::menu_MenuBar + 28;
-Fl_Menu_Item* DeRotatorUI::WifiStatus = DeRotatorUI::menu_MenuBar + 29;
+Fl_Menu_Item* DeRotatorUI::SetEarthOmega = DeRotatorUI::menu_MenuBar + 14;
+Fl_Menu_Item* DeRotatorUI::SetDisplayCameraAngle = DeRotatorUI::menu_MenuBar + 15;
+Fl_Menu_Item* DeRotatorUI::IsLimitsEnabled = DeRotatorUI::menu_MenuBar + 16;
+Fl_Menu_Item* DeRotatorUI::IsClockWise = DeRotatorUI::menu_MenuBar + 17;
+Fl_Menu_Item* DeRotatorUI::SetHardwareWLAN = DeRotatorUI::menu_MenuBar + 18;
+Fl_Menu_Item* DeRotatorUI::SaveHardwareSetup = DeRotatorUI::menu_MenuBar + 19;
+Fl_Menu_Item* DeRotatorUI::LoadHardwareSetup = DeRotatorUI::menu_MenuBar + 20;
+Fl_Menu_Item* DeRotatorUI::LoadDefaultHardwareSetup = DeRotatorUI::menu_MenuBar + 21;
+Fl_Menu_Item* DeRotatorUI::IntroducingFieldDeRotator = DeRotatorUI::menu_MenuBar + 24;
+Fl_Menu_Item* DeRotatorUI::UserInterfaceHelp = DeRotatorUI::menu_MenuBar + 25;
+Fl_Menu_Item* DeRotatorUI::ControllerHelp = DeRotatorUI::menu_MenuBar + 26;
+Fl_Menu_Item* DeRotatorUI::About = DeRotatorUI::menu_MenuBar + 27;
+Fl_Menu_Item* DeRotatorUI::SerialStatus = DeRotatorUI::menu_MenuBar + 29;
+Fl_Menu_Item* DeRotatorUI::WifiStatus = DeRotatorUI::menu_MenuBar + 30;
 
 void DeRotatorUI::cb_OK_i(Fl_Button* o, void*) {
   using namespace std;
@@ -1167,11 +1196,16 @@ if(_serial_client == NULL){
   // set the serial radio button
   SerialStatus->set();
   
- #ifdef AAAAA
-   // get the current hardware status of the derotator
-  QueryHardware->do_callback(o);  
-#endif
+  // done waiting. Now there's a lot serial strings that gets
+  // sent from the controller
+
+  _serial_client->ReadStringUntil();
+  _serial_client->ReadStringUntil();
+  _serial_client->ReadStringUntil();
   
+    // get the current hardware status of the derotator
+  QueryHardware->do_callback(o); 
+   
   // disconnect Wifi if connected and untoggle the wifi button
   if(_tcp_client){
     delete _tcp_client;
@@ -1340,6 +1374,119 @@ void DeRotatorUI::cb_Cancel4_i(Fl_Button*, void*) {
 }
 void DeRotatorUI::cb_Cancel4(Fl_Button* o, void* v) {
   ((DeRotatorUI*)(o->parent()->user_data()))->cb_Cancel4_i(o,v);
+}
+
+void DeRotatorUI::cb_EarthOmegaInput_i(Fl_Float_Input* o, void*) {
+  float new_omega = atof(EarthOmegaInput->value());
+
+if((new_omega > 0.9*OMEGA) && (new_omega < 1.1*OMEGA)){
+
+  // update the tweak value if new_omega is ok
+
+  char buf[32];  
+  sprintf(buf, "%4.4f", new_omega/OMEGA);
+  TweakValueInput->value(buf);
+
+}
+else {
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+  
+  LOG_ERROR << "Earth's rotation tweak must be within 10% of default value";
+  
+  float tweak = atof(TweakValueInput->value());
+  // put back old value of earth's omega
+  char buf[32];
+  sprintf(buf, "%2.7e", tweak*OMEGA);
+  o->value(buf);
+
+};
+}
+void DeRotatorUI::cb_EarthOmegaInput(Fl_Float_Input* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_EarthOmegaInput_i(o,v);
+}
+
+void DeRotatorUI::cb_TweakValueInput_i(Fl_Float_Input* o, void*) {
+  float tweak = atof(TweakValueInput->value());
+float new_omega = OMEGA*tweak;
+
+if((new_omega > 0.9*OMEGA) && (new_omega < 1.1*OMEGA)){
+  char buf[32];
+  sprintf(buf, "%2.7e", new_omega);
+  EarthOmegaInput->value(buf);
+}
+else {
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+  
+  LOG_ERROR << "Earth's rotation tweak must be within 10% of default value";
+  
+  float omega = atof(EarthOmegaInput->value());
+  // put back old value of tweak
+  char buf[32];
+  sprintf(buf, "%4.4f", omega/OMEGA);
+  o->value(buf);
+
+};
+}
+void DeRotatorUI::cb_TweakValueInput(Fl_Float_Input* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_TweakValueInput_i(o,v);
+}
+
+void DeRotatorUI::cb_SetEarthOmegaOK_i(Fl_Button* o, void*) {
+  using namespace logging::trivial;
+src::severity_logger< severity_level > lg; 
+
+float omega = atof(EarthOmegaInput->value());
+
+RequestPacket rq;
+rq._command = CMD_SET_OMEGA_VALUE;
+rq._fvalue[0] = omega;
+
+if(SendCommand(&rq) != REPLY_OK){    
+  LOG_ERROR << "DeRotatorUI::Send: SendCommand() error: cannot set omega value";
+  
+  // put back the old values since it's in error
+  float* omega = (float*)(o->user_data());
+  
+  char buf[32];
+  sprintf(buf, "%2.7e", *omega);
+  EarthOmegaInput->value(buf);
+  
+  sprintf(buf, "%4.4f", (*omega)/OMEGA);
+  TweakValueInput->value(buf);
+    
+  return;
+}
+
+
+LOG_INFO << "New Earth's rotation rate: " 
+         << omega
+         << " rad/s";
+          
+SetEarthOmegaPopup->hide();
+}
+void DeRotatorUI::cb_SetEarthOmegaOK(Fl_Button* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_SetEarthOmegaOK_i(o,v);
+}
+
+void DeRotatorUI::cb_SetEarthOmegaCancel_i(Fl_Button* o, void*) {
+  float* orig_omega = (float*)(o->user_data());
+
+// set both input values to their original values
+char buf[32];
+sprintf(buf, "%2.7e", *orig_omega);
+EarthOmegaInput->value(buf);
+
+sprintf(buf, "%4.4f", *orig_omega/OMEGA);
+TweakValueInput->value(buf);
+
+SetEarthOmegaPopup->hide();
+}
+void DeRotatorUI::cb_SetEarthOmegaCancel(Fl_Button* o, void* v) {
+  ((DeRotatorUI*)(o->parent()->user_data()))->cb_SetEarthOmegaCancel_i(o,v);
 }
 
 DeRotatorUI::DeRotatorUI() {
@@ -1560,6 +1707,25 @@ DeRotatorUI::DeRotatorUI() {
     } // Fl_Button* o
     SetDisplayCameraAnglePopup->end();
   } // Fl_Double_Window* SetDisplayCameraAnglePopup
+  { SetEarthOmegaPopup = new Fl_Double_Window(300, 120, "Earth\'s rotation rate");
+    SetEarthOmegaPopup->user_data((void*)(this));
+    { EarthOmegaInput = new Fl_Float_Input(180, 20, 110, 23, "Earth\'s rotation rate (rad/s)");
+      EarthOmegaInput->type(1);
+      EarthOmegaInput->callback((Fl_Callback*)cb_EarthOmegaInput);
+      EarthOmegaInput->window()->hotspot(EarthOmegaInput);
+    } // Fl_Float_Input* EarthOmegaInput
+    { TweakValueInput = new Fl_Float_Input(180, 45, 110, 24, "Tweak value");
+      TweakValueInput->type(1);
+      TweakValueInput->callback((Fl_Callback*)cb_TweakValueInput);
+    } // Fl_Float_Input* TweakValueInput
+    { SetEarthOmegaOK = new Fl_Button(20, 90, 63, 20, "OK");
+      SetEarthOmegaOK->callback((Fl_Callback*)cb_SetEarthOmegaOK);
+    } // Fl_Button* SetEarthOmegaOK
+    { SetEarthOmegaCancel = new Fl_Button(90, 90, 63, 20, "Cancel");
+      SetEarthOmegaCancel->callback((Fl_Callback*)cb_SetEarthOmegaCancel);
+    } // Fl_Button* SetEarthOmegaCancel
+    SetEarthOmegaPopup->end();
+  } // Fl_Double_Window* SetEarthOmegaPopup
   // initialization code
   _serial_client = NULL;
   _tcp_client = NULL;

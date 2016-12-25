@@ -125,6 +125,8 @@ public:
   
   bool WaitUntil(const float degrees,
 		 const float wait_time = 0.5) const;
+
+  int SetOmega(const float omega) const;
   
 
 private:

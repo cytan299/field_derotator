@@ -1,4 +1,4 @@
-/* $Id: RequestPacket.hpp | Sat Aug 1 23:56:42 2015 -0500 | cytan  $ */
+/* $Id$ */
 /*
     derot is the GUI frontend that controls the field derotator
     Copyright (C) 2015  C.Y. Tan
@@ -66,7 +66,6 @@ SEE ALSO
 #define SETUP_DEF_SETTINGS	27
 
 
-
 /*
 	Commands that are not on the Derotator menu
 	are all > 100
@@ -82,6 +81,8 @@ SEE ALSO
 #define CMD_SET_WLAN_SSID	107
 #define CMD_SET_WLAN_PASS	108
 #define CMD_SET_WLAN_SECURITY	109
+#define CMD_SET_OMEGA_VALUE	110
+#define CMD_GET_OMEGA_VALUE	111
 
 
 struct RequestPacket

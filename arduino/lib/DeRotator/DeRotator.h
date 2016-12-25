@@ -176,6 +176,16 @@ INTERFACE
 				   Returns 1 if rotation has to be
 				   continued.
 
+	SetOmega(		- set the Earth's rotion rate
+	  omega			- by this amount in rad/s. NO error checking is
+				  done! 
+				  
+	)
+
+	GetOmega()		- returns the Earth's rotation rate in
+				  rad/s. This value contains the
+				  user's tweak.
+
 	LoadLimits(		- load the limits of
 	  home_pos			- home. Default = 0 
 	  max_cw		- max_cw. Default = +90 deg
@@ -255,6 +265,9 @@ public:
   int StartGoingToUserAngle(const double angle);
   int ContinueFindingUserAngle();
   long _user_abs_angle_pos;
+
+  void SetOmega(const double f);
+  double GetOmega() const;
   
 public:
   void LoadLimits(const long home_pos = 0,
@@ -291,6 +304,7 @@ private:
 
 private:
   double _latitude_rad;
+  double _omega;
   const double _MECHANICAL_STEPSIZE_RAD; // in rad/step
   const bool _is_debug;
 

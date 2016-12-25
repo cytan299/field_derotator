@@ -50,7 +50,7 @@ SEE ALSO
 #define WLAN_WPA2	3
 
 #define REPLY_IS_DEROTATING	10
-
+#pragma pack(push, 1) // exact fit - no padding
 struct StatusPacket
 {
   int16_t _reply;
@@ -67,17 +67,12 @@ struct StatusPacket
   char _WLAN_ssid[32];
   char _WLAN_password[32];
   int16_t _WLAN_security;
-  /*
-    I have to add this padding because
-    with or without this padding,
-	sizeof(StatusPacket) = 88 on Mac
-    but
-	sizeof(StatusPacket) = 86 without this padding on Arduino
-	sizeof(StatusPacket) = 88 with this padding on Arduino
-   */
-  int16_t _padding2; 
+
+  // Earth's rotation rate
+  float _omega;
 };
 		   
+#pragma pack(pop) //back to whatever the previous packing mode was 
 			
 
 #endif

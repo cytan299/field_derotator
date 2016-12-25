@@ -53,6 +53,7 @@
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Float_Input.H>
+#include "constants.h"
 
 /**
  The GUI frontend that allows the user to control the field de-rotator.
@@ -165,6 +166,11 @@ public:
 private:
   inline void cb_SetHallHome_i(Fl_Menu_*, void*);
   static void cb_SetHallHome(Fl_Menu_*, void*);
+public:
+  static Fl_Menu_Item *SetEarthOmega;
+private:
+  inline void cb_SetEarthOmega_i(Fl_Menu_*, void*);
+  static void cb_SetEarthOmega(Fl_Menu_*, void*);
 public:
   static Fl_Menu_Item *SetDisplayCameraAngle;
 private:
@@ -290,6 +296,27 @@ private:
   static void cb_OK4(Fl_Button*, void*);
   inline void cb_Cancel4_i(Fl_Button*, void*);
   static void cb_Cancel4(Fl_Button*, void*);
+public:
+  Fl_Double_Window *SetEarthOmegaPopup;
+  Fl_Float_Input *EarthOmegaInput;
+private:
+  inline void cb_EarthOmegaInput_i(Fl_Float_Input*, void*);
+  static void cb_EarthOmegaInput(Fl_Float_Input*, void*);
+public:
+  Fl_Float_Input *TweakValueInput;
+private:
+  inline void cb_TweakValueInput_i(Fl_Float_Input*, void*);
+  static void cb_TweakValueInput(Fl_Float_Input*, void*);
+public:
+  Fl_Button *SetEarthOmegaOK;
+private:
+  inline void cb_SetEarthOmegaOK_i(Fl_Button*, void*);
+  static void cb_SetEarthOmegaOK(Fl_Button*, void*);
+public:
+  Fl_Button *SetEarthOmegaCancel;
+private:
+  inline void cb_SetEarthOmegaCancel_i(Fl_Button*, void*);
+  static void cb_SetEarthOmegaCancel(Fl_Button*, void*);
 public:
   void show(int argc, char** argv);
   void show();

@@ -119,6 +119,7 @@ DeRotator::DeRotator(Telescope* const telescope,
   _stepper(AccelStepper(AccelStepper::DRIVER, 6,7)),
   _telescope(telescope),
   _latitude_rad(0.0), // this will be initialized in Start() by querying Telescope
+  _omega(OMEGA),
   _MECHANICAL_STEPSIZE_RAD(mechanical_stepsize*DEG2RAD),
   _is_debug(is_debug)
 {
@@ -556,6 +557,17 @@ int DeRotator::ContinueFindingUserAngle()
   }
 }
 
+void DeRotator::SetOmega(const double omega)
+{
+  _omega = omega;
+}
+
+double DeRotator::GetOmega() const
+{
+  return _omega;
+}
+   
+
 double DeRotator::dzeta_dt(const double latitude_rad,
 			   const double alt,
 			   const double az)
@@ -563,7 +575,7 @@ double DeRotator::dzeta_dt(const double latitude_rad,
   double alt_rad = alt*DEG2RAD;
   double az_rad = az*DEG2RAD;
 
-  return OMEGA*cos(az_rad)*cos(latitude_rad)/cos(alt_rad);
+  return _omega*cos(az_rad)*cos(latitude_rad)/cos(alt_rad);
 }
   
 

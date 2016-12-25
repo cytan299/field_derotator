@@ -92,6 +92,7 @@ public:
   int Receive(StatusPacket* statusPacket);  
 
   int ReadString();
+  std::string ReadStringUntil(const std::string& delim="\n");
 
   int IsGotData();
 

@@ -15,12 +15,9 @@ ifeq '$(OS)' "Windows_NT"
 EXEEXT = .exe
 endif
 
-#FLTKCONFIG   = ../fltk-1.3.3/fltk-config
-#FLTKCONFIG   = ../fltk-1.3.x-r10729/fltk-config
-#FLTKCONFIG   = ../fltk-1.3.x-r10820/fltk-config
-FLTKCONFIG   = ../fltk-1.3.x-r10866/fltk-config
+FLTKCONFIG   = ../fltk-1.3.4-1/fltk-config
 CXX          = $(shell $(FLTKCONFIG) --cxx) -g
-CXXFLAGS     = $(shell $(FLTKCONFIG) --cxxflags) -g -Wall -I.
+CXXFLAGS     = $(shell $(FLTKCONFIG) --cxxflags) -g -Wno-deprecated-declarations -I.
 LINKFLTK     = $(shell $(FLTKCONFIG) --ldstaticflags) -g
 LINKFLTK_GL  = $(shell $(FLTKCONFIG) --use-gl --ldstaticflags)
 LINKFLTK_IMG = $(shell $(FLTKCONFIG) --use-images --ldstaticflags)

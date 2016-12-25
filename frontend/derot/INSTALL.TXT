@@ -1,6 +1,6 @@
 INSTALL
 =====
-(Aug 2015)
+(Dec 2016)
 
 At this time the code is Mac centric. Although the executable
    derot
@@ -22,8 +22,9 @@ Build requirements
     On a Mac, use macports
        port install boost
 
-(2) The fltk libraries must be installed. fltk-1.3.3 release is actually quite unstable.
-     Version must be at least fltk-1.3.x-r10729.
+(2) The fltk libraries must be installed. fltk-1.3.4 works. fltk-1.3.3
+     is actually quite unstable and and the earliest version that
+     works is fltk-1.3.x-r10729.
      Download from www.fltk.org
 
 (3) A dynamic bundler must be installed to make the derot.app bundle
@@ -33,7 +34,7 @@ Build requirements
 Edits
 ===
 Edit Makefile.FLTK to point to where you've installed fltk. Change this:
-     FLTKCONFIG   = ../fltk-1.3.x-r10729/fltk-config
+     FLTKCONFIG   = ../fltk-1.3.4-1/fltk-config
 
 Edit Makefile to point to where dylibbundler is installed
      DYLIBBUNDLER = ../macdylibbundler-master/dylibbundler

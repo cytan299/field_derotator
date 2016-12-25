@@ -29,6 +29,7 @@
 /* general system header files (use "" for make depend) */
 
 /* local include files (use "") */
+#include "constants.h"
 #include "DeRotatorCMD.hpp"
 
 
@@ -332,3 +333,27 @@ bool DeRotatorCMD::WaitUntil(const float degrees, const float wait_time) const
 }
 
    
+int DeRotatorCMD::SetOmega(const float omega) const
+{
+  // first check that omega is reasonable, or else return error
+  if((omega > 0.9*OMEGA) && (omega < 1.1*OMEGA)){
+    RequestPacket rq;
+
+    rq._command = CMD_SET_OMEGA_VALUE;
+    rq._fvalue[0] = omega;
+  
+    if(SendCommand(&rq) != REPLY_OK){
+      cerr << "DeRotatorCMD::SetOmega(): SendCommand() error\n";
+      return -1;
+    }
+    return 0;
+  }
+  else {
+    cerr << "DeRotatorCMD::SetOmega(): Unreasonable omega value: "
+	 << omega << " rad/s\n";
+    cerr << "\t Must be within 10% of " << OMEGA << " rad/s\n";
+    return -1;
+  }
+
+  return 0;
+}
